@@ -1,0 +1,44 @@
+#encrypt {
+    border-right: 1px solid $border_colour;
+    text-align: right;
+
+    h1 {
+        margin-right: 30px;
+    }
+
+    input {
+        position: absolute;
+        right: 20px;
+        top: 70px;
+        width: 40%;
+        padding: 3px;
+    }
+
+    textarea {
+        position: absolute;
+        right: 20px;
+        top: 100px;
+        bottom: 100px;
+        width: 60%;
+    }
+
+    a {
+        position: absolute;
+        bottom: 70px;
+        right: 20px;
+    }
+
+    p {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+    }
+}
+
+#decrypt {
+    position: absolute;
+    top: 0px;
+    bottom: 0px;
+    right: 0px;
+    width: 50%;
+}

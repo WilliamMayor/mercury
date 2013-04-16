@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <link href="style.css" rel="stylesheet" media="screen">
+        <script src="brython.js" type="text/javascript"></script>
+    </head>
+    <body onload="brython()">
+        <div id="header">
+            Summer Challenge 2013 - Can You Hack It?
+        </div>
+        <div id="container">
+            <div id="encrypt">
+                <h1>Encrypt</h1>
+                <input type="text" id="plaintext" placeholder="Plaintext"/>
+                <textarea id="encrypt_code">
+def encrypt(plaintext):
+    return ''.join([chr(ord(c) + 1) for c in plaintext])
+                </textarea>
+                <a href="#encrypt" onclick="run_encrypt(); return false;">Encrypt</a>
+                <p id="ciphertext"></p>
+            </div>
+            <div id="decrypt">
+
+            </div>
+        </div>
+        <div id="console">
+            <ul id="console_output">
+
+            </ul>
+        </div>
+        <script src="script.py" type="text/python"></script>
+    </body>
+</html>
