@@ -6,7 +6,8 @@
     </head>
     <body onload="brython()">
         <div id="header">
-            Summer Challenge 2013 - Can You Hack It?
+            <h1>Summer Challenge 2013 - Can You Hack It?</h1>
+            <a href="#save" id="save">Save</a>
         </div>
         <div id="container">
             <div id="encrypt">
@@ -14,8 +15,12 @@
                 <input type="text" id="plaintext" placeholder="Plaintext"/>
                 <textarea id="encrypt_code">
 def encrypt(plaintext):
-    return ''.join([chr(ord(c) + 1) for c in plaintext])
-                </textarea>
+    info('Performing Caesar Cipher on: ' + plaintext)
+    key = 17
+    info('Using shift of %d' % key)
+    ciphertext = ''.join([chr(ord(c) + key) for c in plaintext])
+    return ciphertext
+</textarea>
                 <a href="#encrypt" onclick="run_encrypt(); return false;">Encrypt</a>
                 <p id="ciphertext"></p>
             </div>
@@ -25,7 +30,9 @@ def encrypt(plaintext):
         </div>
         <div id="console">
             <ul id="console_output">
-
+                <li class="info">Welcome to the Mercury extension builder.</li>
+                <li class="info">Useful information will appear in this console.</li>
+                <li class="info">You can output information here using; info(message), success(message), and error(message).</li>
             </ul>
         </div>
         <script src="script.py" type="text/python"></script>

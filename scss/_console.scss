@@ -1,3 +1,25 @@
 #console {
-    border-top: 1px solid $border_colour;
+    background-color: black;
+    margin: 0;
+    padding: 0 10px;
+    overflow: scroll;
+    font-family: monospace;
+
+    ul {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+    }
+
+    .info {
+        color: #ccc;
+    }
+
+    .success {
+        color: green;
+    }
+
+    .error {
+        color: red;
+    }
 }

@@ -34,6 +34,12 @@ html, body {
 
 #header {
   border-bottom: 1px solid #333333; }
+  #header h1 {
+    margin: 5px 0 0 20px; }
+  #header #save {
+    position: absolute;
+    right: 20px;
+    top: 20px; }
 
 #encrypt {
   border-right: 1px solid #333333;
@@ -69,4 +75,18 @@ html, body {
   width: 50%; }
 
 #console {
-  border-top: 1px solid #333333; }
+  background-color: black;
+  margin: 0;
+  padding: 0 10px;
+  overflow: scroll;
+  font-family: monospace; }
+  #console ul {
+    list-style: none;
+    margin: 0;
+    padding: 0; }
+  #console .info {
+    color: #ccc; }
+  #console .success {
+    color: green; }
+  #console .error {
+    color: red; }
