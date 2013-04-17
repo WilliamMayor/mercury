@@ -1,44 +1,35 @@
 #encrypt {
     border-right: 1px solid $border_colour;
-    text-align: right;
 
     h1 {
-        margin-right: 30px;
+        margin: 10px 0px 0px 30px;
+    }
+
+    label {
+        margin-left: 20px;
+        margin-right: 10px;
     }
 
     input {
-        position: absolute;
-        right: 20px;
-        top: 70px;
         width: 40%;
         padding: 3px;
+        margin-bottom: 20px;
     }
 
-    textarea {
-        position: absolute;
-        right: 20px;
-        top: 100px;
-        bottom: 100px;
-        width: 60%;
+    .CodeMirror {
+        border-top: 1px solid $border_colour;
+        border-bottom: 1px solid $border_colour;
     }
 
     a {
-        position: absolute;
-        bottom: 70px;
-        right: 20px;
+        
     }
 
     p {
-        position: absolute;
-        bottom: 20px;
-        right: 20px;
+        
     }
 }
 
 #decrypt {
-    position: absolute;
-    top: 0px;
-    bottom: 0px;
-    right: 0px;
-    width: 50%;
+    
 }
