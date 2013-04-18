@@ -1,3 +1,5 @@
+$editor_top: 180px;
+$controls_height: 50px;
 #encrypt {
     border-right: 1px solid $border_colour;
 
@@ -16,17 +18,17 @@
         margin-bottom: 20px;
     }
 
-    .CodeMirror {
-        border-top: 1px solid $border_colour;
-        border-bottom: 1px solid $border_colour;
+    #encrypt_editor { 
+        width: 100%;
+        position: absolute;
+        top: $editor_top;
+        bottom: $controls_height;
     }
 
-    a {
-        
-    }
-
-    p {
-        
+    .controls {
+        position: absolute;
+        bottom: 0;
+        height: $controls_height;
     }
 }
 

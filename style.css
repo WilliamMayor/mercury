@@ -18,7 +18,8 @@ html, body {
     top: 0px;
     bottom: 0px;
     left: 0px;
-    width: 50%; }
+    width: 50%;
+    overflow-y: scroll; }
   #container #decrypt {
     position: absolute;
     top: 0px;
@@ -52,9 +53,15 @@ html, body {
     width: 40%;
     padding: 3px;
     margin-bottom: 20px; }
-  #encrypt .CodeMirror {
-    border-top: 1px solid #333333;
-    border-bottom: 1px solid #333333; }
+  #encrypt #encrypt_editor {
+    width: 100%;
+    position: absolute;
+    top: 180px;
+    bottom: 50px; }
+  #encrypt .controls {
+    position: absolute;
+    bottom: 0;
+    height: 50px; }
 
 #console {
   background-color: black;

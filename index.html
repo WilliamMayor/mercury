@@ -1,10 +1,10 @@
 <!doctype html>
 <html lang="en">
     <head>
+        <script src="src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
         <script src="jquery.js" type="text/javascript"></script>
         <script src="brython.js" type="text/javascript"></script>
         <script src="script.js" type="text/javascript"></script>
-        <link rel="stylesheet" href="codemirror.css">
         <link href="style.css" rel="stylesheet" media="screen">
     </head>
     <body>
@@ -23,16 +23,32 @@
                     </ol>
                 </div>
                 <label>Plaintext:</label><input type="text" class="plaintext" placeholder="e.g. hello"/>
-                <textarea id="encrypt_code">
+                <div id="encrypt_editor">whitespace = ' \t\n\r\v\f'
+ascii_lowercase = 'abcdefghijklmnopqrstuvwxyz'
+ascii_uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+ascii_letters = ascii_lowercase + ascii_uppercase
+digits = '0123456789'
+punctuation = """!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""
+printable = digits + ascii_letters + punctuation + whitespace
+
 def encrypt(plaintext):
     info('Performing Caesar Cipher')
     key = 17
     info('Using shift of %d' % key)
-    ciphertext = ''.join([chr(ord(c) + key) for c in plaintext])
-    return ciphertext
-</textarea>
-                <a href="#encrypt" class="execute">Encrypt</a>
-                <p class="ciphertext"></p>
+    ciphertext = []
+    for i, c in enumerate(plaintext):
+        index = printable.find(c)
+        if index == -1:
+            message = 'Character %d in plaintext not shiftable' % (i+1)
+            error(message)
+            raise Exception(message)
+        ciphertext += printable[(index + key) % len(printable)]
+    return ''.join(ciphertext)
+                </div>
+                <div class="controls">
+                    <a href="#encrypt" class="execute">Encrypt</a>
+                    <p class="ciphertext"></p>
+                </div>
             </div>
             <div id="decrypt">
 

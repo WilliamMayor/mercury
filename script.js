@@ -10,17 +10,27 @@ info = function(message) {
 $(document).ready(function() {
     brython(1);
 
+    var encrypt_editor = ace.edit("encrypt_editor");
+    encrypt_editor.setTheme("ace/theme/pastel_on_dark");
+    encrypt_editor.getSession().setMode("ace/mode/python");
+
     $("#encrypt a.execute").click(function() {
         var plaintext = $("#encrypt input.plaintext").val();
-        var src = ''
+        var src = encrypt_editor.getValue();
+        console.log(src);
         var root = __BRYTHON__.py2js(src);
         var js = root.to_js();
-        info('Loading python code')
-        eval(js);
-        info('Encrypting ' + plaintext + ' using python code')
-        var ciphertext = encrypt(plaintext);
-        success('Encrypted into: ' + ciphertext)
-        $("#encrypt p.ciphertext").text(ciphertext);
+        try {
+            info('Loading python code')
+            eval(js);
+            info('Encrypting ' + plaintext + ' using python code')
+            var ciphertext = encrypt(plaintext);
+            success('Encrypted into: ' + ciphertext)
+            $("#encrypt p.ciphertext").text(ciphertext);
+        } catch (err) {
+            error('There was a problem: ' + err);
+        }
+        return false;
     });
 });
 
