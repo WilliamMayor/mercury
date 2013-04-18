@@ -10,13 +10,9 @@ info = function(message) {
 $(document).ready(function() {
     brython(1);
 
-    var executeCodeMirror = CodeMirror.fromTextArea(document.getElementById("encrypt_code"), {
-        lineNumbers: true
-    });
-
     $("#encrypt a.execute").click(function() {
         var plaintext = $("#encrypt input.plaintext").val();
-        var src = executeCodeMirror.getValue();
+        var src = ''
         var root = __BRYTHON__.py2js(src);
         var js = root.to_js();
         info('Loading python code')
