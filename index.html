@@ -32,7 +32,7 @@ punctuation = """!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""
 printable = digits + ascii_letters + punctuation + whitespace
 
 def encrypt(plaintext):
-    info('Performing Caesar Cipher')
+    info('Performing Caesar cipher shift')
     key = 17
     info('Using shift of %d' % key)
     ciphertext = []
@@ -51,7 +51,42 @@ def encrypt(plaintext):
                 </div>
             </div>
             <div id="decrypt">
+                <h1>Decrypt</h1>
+                <div class="instructions">
+                    <ol>
+                        <li>Put the ciphertext in box.</li>
+                        <li>Use the code editor to write the code that will decrypt the ciphertext.</li>
+                        <li>Press the 'Decrypt' button at the bottom to run your code and hopefully recreate the message.</li>
+                    </ol>
+                </div>
+                <label>Ciphertext:</label><input type="text" class="ciphertext" placeholder="e.g. yvCCF"/>
+                <div id="decrypt_editor">whitespace = ' \t\n\r\v\f'
+ascii_lowercase = 'abcdefghijklmnopqrstuvwxyz'
+ascii_uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+ascii_letters = ascii_lowercase + ascii_uppercase
+digits = '0123456789'
+punctuation = """!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""
+printable = digits + ascii_letters + punctuation + whitespace
 
+def decrypt(ciphertext):
+    info('Performing reverse Caesar cipher shift')
+    key = 17
+    info('Using shift of %d' % key)
+    plaintext = []
+    for i, c in enumerate(ciphertext):
+        index = printable.find(c)
+        if index == -1:
+            message = 'Character %d in ciphertext not shiftable' % (i+1)
+            error(message)
+            raise Exception(message)
+        plaintext += printable[(index - key) % len(printable)]
+    return ''.join(plaintext)
+                </div>
+                <div class="controls">
+                    <a href="#decrypt" class="execute">Decrypt</a>
+                    <p class="plaintext">Plaintext: <span></span></p>
+                </div>
+            </div>
             </div>
         </div>
         <div id="console">
