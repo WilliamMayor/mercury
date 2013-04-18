@@ -26,7 +26,7 @@ $(document).ready(function() {
             info('Encrypting ' + plaintext + ' using python code')
             var ciphertext = encrypt(plaintext);
             success('Encrypted into: ' + ciphertext)
-            $("#encrypt p.ciphertext").text(ciphertext);
+            $("#encrypt p.ciphertext span").text(ciphertext);
         } catch (err) {
             error('There was a problem: ' + err);
         }

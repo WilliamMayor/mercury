@@ -42,26 +42,35 @@ html, body {
     right: 20px;
     top: 20px; }
 
-#encrypt {
+#encrypt, #decrypt {
   border-right: 1px solid #333333; }
-  #encrypt h1 {
+  #encrypt h1, #decrypt h1 {
     margin: 10px 0px 0px 30px; }
-  #encrypt label {
+  #encrypt label, #decrypt label {
     margin-left: 20px;
     margin-right: 10px; }
-  #encrypt input {
+  #encrypt input, #decrypt input {
     width: 40%;
     padding: 3px;
     margin-bottom: 20px; }
-  #encrypt #encrypt_editor {
+  #encrypt #encrypt_editor, #encrypt #decrypt_editor, #decrypt #encrypt_editor, #decrypt #decrypt_editor {
     width: 100%;
     position: absolute;
     top: 180px;
     bottom: 50px; }
-  #encrypt .controls {
+  #encrypt .controls, #decrypt .controls {
     position: absolute;
     bottom: 0;
-    height: 50px; }
+    height: 50px;
+    width: 100%; }
+    #encrypt .controls a, #decrypt .controls a {
+      position: absolute;
+      bottom: 15px;
+      left: 50px; }
+    #encrypt .controls p, #decrypt .controls p {
+      position: absolute;
+      right: 0px;
+      width: 50%; }
 
 #console {
   background-color: black;
