@@ -129,18 +129,23 @@ html, body {
     bottom: 35px;
     left: 80px; }
 
-#console {
-  background-color: black;
-  margin: 0;
+#console ul {
+  width: 750px;
+  height: 500px;
+  margin-left: 125px;
+  margin-top: 30px;
+  border: 1px solid #95a5a6;
   overflow: scroll;
-  font-family: monospace; }
-  #console ul {
-    list-style: none;
-    margin: 0 10px 0 10px;
-    padding: 0; }
-  #console .info {
-    color: #ccc; }
-  #console .success {
-    color: green; }
-  #console .error {
-    color: red; }
+  background-color: #2C3E50;
+  list-style: none;
+  padding: 5px;
+  font-family: 'Ubuntu Mono', sans-serif; }
+  #console ul li {
+    white-space: nowrap;
+    line-height: 20px; }
+#console .info {
+  color: #ecf0f1; }
+#console .success {
+  color: #2ecc71; }
+#console .error {
+  color: #e74c3c; }

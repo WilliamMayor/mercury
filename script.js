@@ -1,13 +1,13 @@
 error = function(message) {
-    //$("#console_output").append($("<li class='error'>" + message + "</li>"));
+    $("#console_output").append($("<li class='error'>" + message + "</li>"));
     console.log(message)
 }
 success = function(message) {
-    //$("#console_output").append($("<li class='success'>" + message + "</li>"));
+    $("#console_output").append($("<li class='success'>" + message + "</li>"));
     console.log(message)
 }
 info = function(message) {
-    //$("#console_output").append($("<li class='info'>" + message + "</li>"));
+    $("#console_output").append($("<li class='info'>" + message + "</li>"));
     console.log(message)
 }
 makeEditor = function(id, inputfile) {

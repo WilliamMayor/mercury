@@ -1,24 +1,33 @@
 #console {
-    background-color: black;
-    margin: 0;
-    overflow: scroll;
-    font-family: monospace;
 
     ul {
+        width: 750px;
+        height: 500px;
+        margin-left: 125px;
+        margin-top: 30px;
+        border: 1px solid $border_color_dark;
+        overflow: scroll;
+        background-color: #2C3E50;
         list-style: none;
-        margin: 0 10px 0 10px;
-        padding: 0;
+        padding: 5px;
+        font-family: 'Ubuntu Mono', sans-serif;
+
+        li {
+            white-space: nowrap;
+            line-height: 20px;
+        }
+        
     }
 
     .info {
-        color: #ccc;
+        color: $info_color;
     }
 
     .success {
-        color: green;
+        color: $success_color;;
     }
 
     .error {
-        color: red;
+        color: $error_color;;
     }
 }
