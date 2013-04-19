@@ -1,0 +1,71 @@
+#navbar {
+    width: 1000px;
+    margin: auto;
+    ul {
+        list-style: none;
+        padding: 0px;
+
+        li {
+            display: inline;
+
+            a {
+                display: inline-block;
+                width: 100px;
+                text-decoration: none;
+                padding: 5px 5px 8px 5px;
+                margin: 0 15px;
+                color: $link_color;
+                font-weight: lighter;
+                line-height: 20px;
+                text-align: center;
+
+                &.setup {
+                    background-color: $setup_color_dark;
+                    &:hover {
+                        background-color: $setup_color_light;
+                    }
+                }
+
+                &.encrypt {
+                    background-color: $encrypt_color_dark;
+                    &:hover {
+                        background-color: $encrypt_color_light;
+                    }
+                }
+
+                &.decrypt {
+                    background-color: $decrypt_color_dark;
+                    &:hover {
+                        background-color: $decrypt_color_light;
+                    }
+                }
+
+                &.hack {
+                    background-color: $hack_color_dark;
+                    &:hover {
+                        background-color: $hack_color_light;
+                    }
+                }
+
+                &.console {
+                    background-color: $console_color_dark;
+                    &:hover {
+                        background-color: $console_color_light;
+                    }
+                }
+
+                &.save {
+                    background-color: $save_color_dark;
+                    &:hover {
+                        background-color: $save_color_light;
+                    }
+                }
+
+                &.console, &.save {
+                    position: relative;
+                    left: 140px;
+                }
+            }
+        }
+    }
+}

@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en">
     <head>
-        <link href='http://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
+        <link href='http://fonts.googleapis.com/css?family=Lato:300,400,700|VT323' rel='stylesheet' type='text/css'>
         <script src="src-min-noconflict/ace.js" type="text/javascript" charset="utf-8"></script>
         <script src="jquery.js" type="text/javascript"></script>
         <script src="brython.js" type="text/javascript"></script>
@@ -10,84 +10,64 @@
     </head>
     <body>
         <div id="header">
-            <h1>Summer Challenge 2013 - Can You Hack It?</h1>
-            <a href="#save" id="save">Save</a>
+            <h1>Summer Challenge 2013</h1>
+            <h2>Can You Hack It?</h2>
         </div>
-        <div id="container">
-            <div id="encrypt">
+        <div id="navbar">
+            <ul>
+                <li><a class="setup" href="#setup">setup</a></li>
+                <li><a class="encrypt" href="#encrypt">encrypt</a></li>
+                <li><a class="decrypt" href="#decrypt">decrypt</a></li>
+                <li><a class="hack" href="#hack">hack</a></li>
+                <li><a class="console" href="#console">console</a></li>
+                <li><a class="save" href="#save">save</a></li>
+            </ul>
+        </div>
+        <div id="panels" class="hidden">
+            <div class="panel" id="setup">
+                <h1>Setup</h1>
+                <div class="instructions">
+                    <ol>
+                        <li>The setup is run before anything else</li>
+                        <li>Add shared code here</li>
+                    </ol>
+                </div>
+                <div class="editor" id="setup_editor"></div>
+            </div>
+            <div class="panel" id="encrypt">
                 <h1>Encrypt</h1>
                 <div class="instructions">
                     <ol>
-                        <li>Use the Plaintext box to provide a message to be encrypted.</li>
-                        <li>Use the code editor to write the code that will encrypt the message.</li>
-                        <li>Press the 'Encrypt' button at the bottom to run your code on your plaintext.</li>
+                        <li>Type a message to encrypt</li>
+                        <li>Write the code to encrypt your message</li>
+                        <li>Click 'encrypt' and cross your fingers</li>
                     </ol>
                 </div>
-                <label>Plaintext:</label><input type="text" class="plaintext" placeholder="e.g. hello"/>
-                <div id="encrypt_editor">whitespace = ' \t\n\r\v\f'
-ascii_lowercase = 'abcdefghijklmnopqrstuvwxyz'
-ascii_uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-ascii_letters = ascii_lowercase + ascii_uppercase
-digits = '0123456789'
-punctuation = """!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""
-printable = digits + ascii_letters + punctuation + whitespace
-
-def encrypt(plaintext):
-    info('Performing Caesar cipher shift')
-    key = 17
-    info('Using shift of %d' % key)
-    ciphertext = []
-    for i, c in enumerate(plaintext):
-        index = printable.find(c)
-        if index == -1:
-            message = 'Character %d in plaintext not shiftable' % (i+1)
-            error(message)
-            raise Exception(message)
-        ciphertext += printable[(index + key) % len(printable)]
-    return ''.join(ciphertext)
-                </div>
-                <div class="controls">
-                    <a href="#encrypt" class="execute">Encrypt</a>
-                    <p class="ciphertext">Ciphertext: <span></span></p>
-                </div>
+                <input type="text" class="input" placeholder="Message"/>
+                <div class="editor" id="encrypt_editor"></div>
+                <a href="#encrypt" class="execute">encrypt</a>
+                <input type="text" class="output" placeholder="Output"/>
             </div>
-            <div id="decrypt">
+            <div class="panel" id="decrypt">
                 <h1>Decrypt</h1>
                 <div class="instructions">
                     <ol>
-                        <li>Put the ciphertext in box.</li>
-                        <li>Use the code editor to write the code that will decrypt the ciphertext.</li>
-                        <li>Press the 'Decrypt' button at the bottom to run your code and hopefully recreate the message.</li>
+                        <li>Type in the ciphertext</li>
+                        <li>Write the code to decrypt the ciphertext</li>
+                        <li>Click 'decrypt' and cross your fingers</li>
                     </ol>
                 </div>
-                <label>Ciphertext:</label><input type="text" class="ciphertext" placeholder="e.g. yvCCF"/>
-                <div id="decrypt_editor">whitespace = ' \t\n\r\v\f'
-ascii_lowercase = 'abcdefghijklmnopqrstuvwxyz'
-ascii_uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-ascii_letters = ascii_lowercase + ascii_uppercase
-digits = '0123456789'
-punctuation = """!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""
-printable = digits + ascii_letters + punctuation + whitespace
-
-def decrypt(ciphertext):
-    info('Performing reverse Caesar cipher shift')
-    key = 17
-    info('Using shift of %d' % key)
-    plaintext = []
-    for i, c in enumerate(ciphertext):
-        index = printable.find(c)
-        if index == -1:
-            message = 'Character %d in ciphertext not shiftable' % (i+1)
-            error(message)
-            raise Exception(message)
-        plaintext += printable[(index - key) % len(printable)]
-    return ''.join(plaintext)
-                </div>
-                <div class="controls">
-                    <a href="#decrypt" class="execute">Decrypt</a>
-                    <p class="plaintext">Plaintext: <span></span></p>
+                <input type="text" class="input" placeholder="Ciphertext"/>
+                <div class="editor" id="decrypt_editor"></div>
+                <a href="#decrypt" class="execute">decrypt</a>
+                <input type="text" class="output" placeholder="Output"/>
                 </div>
             </div>
+        </div>
+        <!--
+        <div id="container">
+            
+            
             </div>
         </div>
         <div id="console">
@@ -97,5 +77,6 @@ def decrypt(ciphertext):
                 <li class="info">You can output information here using; info(message), success(message), and error(message).</li>
             </ul>
         </div>
+        !-->
     </body>
 </html>

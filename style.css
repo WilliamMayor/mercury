@@ -1,78 +1,133 @@
-body {
-  font-family: 'Lato', sans-serif; }
-
 html, body {
   margin: 0px;
-  padding: 0px; }
+  padding: 0px;
+  font-family: 'Lato', sans-serif;
+  color: #2c3e50; }
 
 #header {
-  position: absolute;
-  top: 0px;
-  height: 50px;
-  width: 100%; }
+  text-align: center; }
+  #header h1, #header h2 {
+    margin: 0; }
+  #header h2 {
+    font-family: 'VT323', cursive; }
 
-#container {
-  position: absolute;
-  top: 51px;
-  bottom: 99px;
-  width: 100%; }
-  #container #encrypt {
-    position: absolute;
-    top: 0px;
-    bottom: 0px;
-    left: 0px;
-    width: 50%;
-    overflow-y: scroll; }
-  #container #decrypt {
-    position: absolute;
-    top: 0px;
-    bottom: 0px;
-    right: 0px;
-    width: 50%;
-    overflow-y: scroll; }
+#navbar {
+  width: 1000px;
+  margin: auto; }
+  #navbar ul {
+    list-style: none;
+    padding: 0px; }
+    #navbar ul li {
+      display: inline; }
+      #navbar ul li a {
+        display: inline-block;
+        width: 100px;
+        text-decoration: none;
+        padding: 5px 5px 8px 5px;
+        margin: 0 15px;
+        color: #ecf0f1;
+        font-weight: lighter;
+        line-height: 20px;
+        text-align: center; }
+        #navbar ul li a.setup {
+          background-color: #16a085; }
+          #navbar ul li a.setup:hover {
+            background-color: #1abc9c; }
+        #navbar ul li a.encrypt {
+          background-color: #27ae60; }
+          #navbar ul li a.encrypt:hover {
+            background-color: #2ecc71; }
+        #navbar ul li a.decrypt {
+          background-color: #2980b9; }
+          #navbar ul li a.decrypt:hover {
+            background-color: #3498db; }
+        #navbar ul li a.hack {
+          background-color: #8e44ad; }
+          #navbar ul li a.hack:hover {
+            background-color: #9b59b6; }
+        #navbar ul li a.console {
+          background-color: #f39c12; }
+          #navbar ul li a.console:hover {
+            background-color: #f1c40f; }
+        #navbar ul li a.save {
+          background-color: #d35400; }
+          #navbar ul li a.save:hover {
+            background-color: #e67e22; }
+        #navbar ul li a.console, #navbar ul li a.save {
+          position: relative;
+          left: 140px; }
 
-#console {
-  position: absolute;
-  bottom: 0px;
-  height: 100px;
-  width: 100%; }
-
-#header h1 {
-  margin: 5px 0 0 20px; }
-#header #save {
-  position: absolute;
-  right: 20px;
-  top: 20px; }
-
-#encrypt h1, #decrypt h1 {
-  margin: 10px 0px 0px 30px; }
-#encrypt label, #decrypt label {
-  margin-left: 20px;
-  margin-right: 10px; }
-#encrypt input, #decrypt input {
-  width: 40%;
-  padding: 3px;
-  margin-bottom: 20px; }
-#encrypt #encrypt_editor, #encrypt #decrypt_editor, #decrypt #encrypt_editor, #decrypt #decrypt_editor {
-  position: absolute;
-  top: 180px;
-  bottom: 50px;
-  right: 10px;
-  left: 10px;
-  border: 1px solid #9f9f9f; }
-#encrypt .controls, #decrypt .controls {
-  position: absolute;
-  bottom: 0;
-  height: 50px;
-  width: 100%; }
-  #encrypt .controls a, #decrypt .controls a {
-    position: absolute;
-    bottom: 15px;
-    left: 50px; }
-  #encrypt .controls p, #decrypt .controls p {
-    position: absolute;
-    right: 0px;
-    width: 50%; }
+#panels {
+  width: 1000px;
+  margin: auto; }
+  #panels.hidden {
+    position: relative;
+    left: 9999px;
+    height: 10px;
+    overflow: hidden; }
+  #panels h1 {
+    margin-left: 100px;
+    margin-bottom: 0; }
+  #panels .instructions {
+    text-align: center; }
+    #panels .instructions ol, #panels .instructions ul {
+      display: inline-block;
+      background-color: #ecf0f1;
+      text-align: left; }
+    #panels .instructions li {
+      margin: 8px 0px; }
+  #panels input[type=text] {
+    display: block;
+    margin: auto;
+    padding: 8px;
+    width: 500px;
+    border: 2px solid #bdc3c7;
+    font-size: 1em;
+    color: #2c3e50; }
+  #panels #setup input[type=text]:focus {
+    outline: none;
+    border: 2px solid #16a085; }
+  #panels #encrypt input[type=text]:focus {
+    outline: none;
+    border: 2px solid #27ae60; }
+  #panels #decrypt input[type=text]:focus {
+    outline: none;
+    border: 2px solid #2980b9; }
+  #panels #hack input[type=text]:focus {
+    outline: none;
+    border: 2px solid #8e44ad; }
+  #panels #console input[type=text]:focus {
+    outline: none;
+    border: 2px solid #f39c12; }
+  #panels #save input[type=text]:focus {
+    outline: none;
+    border: 2px solid #d35400; }
+  #panels .editor {
+    width: 750px;
+    height: 500px;
+    margin-left: 125px;
+    margin-top: 30px;
+    border: 1px solid #95a5a6; }
+  #panels .execute {
+    position: relative;
+    top: 30px;
+    left: 150px;
+    display: inline-block;
+    width: 100px;
+    text-decoration: none;
+    padding: 5px 5px 8px 5px;
+    margin: 0 15px 30px 15px;
+    color: #ecf0f1;
+    font-weight: lighter;
+    line-height: 20px;
+    text-align: center;
+    background-color: #c0393b; }
+    #panels .execute:hover {
+      background-color: #e74c3c; }
+  #panels .output {
+    position: relative;
+    bottom: 35px;
+    left: 80px; }
 
 #console {
   background-color: black;
