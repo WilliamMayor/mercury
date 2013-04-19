@@ -1,3 +1,6 @@
+body {
+  font-family: 'Lato', sans-serif; }
+
 html, body {
   margin: 0px;
   padding: 0px; }
@@ -10,8 +13,8 @@ html, body {
 
 #container {
   position: absolute;
-  top: 50px;
-  bottom: 100px;
+  top: 51px;
+  bottom: 99px;
   width: 100%; }
   #container #encrypt {
     position: absolute;
@@ -25,7 +28,8 @@ html, body {
     top: 0px;
     bottom: 0px;
     right: 0px;
-    width: 50%; }
+    width: 50%;
+    overflow-y: scroll; }
 
 #console {
   position: absolute;
@@ -33,44 +37,42 @@ html, body {
   height: 100px;
   width: 100%; }
 
-#header {
-  border-bottom: 1px solid #333333; }
-  #header h1 {
-    margin: 5px 0 0 20px; }
-  #header #save {
-    position: absolute;
-    right: 20px;
-    top: 20px; }
+#header h1 {
+  margin: 5px 0 0 20px; }
+#header #save {
+  position: absolute;
+  right: 20px;
+  top: 20px; }
 
-#encrypt, #decrypt {
-  border-right: 1px solid #333333; }
-  #encrypt h1, #decrypt h1 {
-    margin: 10px 0px 0px 30px; }
-  #encrypt label, #decrypt label {
-    margin-left: 20px;
-    margin-right: 10px; }
-  #encrypt input, #decrypt input {
-    width: 40%;
-    padding: 3px;
-    margin-bottom: 20px; }
-  #encrypt #encrypt_editor, #encrypt #decrypt_editor, #decrypt #encrypt_editor, #decrypt #decrypt_editor {
-    width: 100%;
+#encrypt h1, #decrypt h1 {
+  margin: 10px 0px 0px 30px; }
+#encrypt label, #decrypt label {
+  margin-left: 20px;
+  margin-right: 10px; }
+#encrypt input, #decrypt input {
+  width: 40%;
+  padding: 3px;
+  margin-bottom: 20px; }
+#encrypt #encrypt_editor, #encrypt #decrypt_editor, #decrypt #encrypt_editor, #decrypt #decrypt_editor {
+  position: absolute;
+  top: 180px;
+  bottom: 50px;
+  right: 10px;
+  left: 10px;
+  border: 1px solid #9f9f9f; }
+#encrypt .controls, #decrypt .controls {
+  position: absolute;
+  bottom: 0;
+  height: 50px;
+  width: 100%; }
+  #encrypt .controls a, #decrypt .controls a {
     position: absolute;
-    top: 180px;
-    bottom: 50px; }
-  #encrypt .controls, #decrypt .controls {
+    bottom: 15px;
+    left: 50px; }
+  #encrypt .controls p, #decrypt .controls p {
     position: absolute;
-    bottom: 0;
-    height: 50px;
-    width: 100%; }
-    #encrypt .controls a, #decrypt .controls a {
-      position: absolute;
-      bottom: 15px;
-      left: 50px; }
-    #encrypt .controls p, #decrypt .controls p {
-      position: absolute;
-      right: 0px;
-      width: 50%; }
+    right: 0px;
+    width: 50%; }
 
 #console {
   background-color: black;

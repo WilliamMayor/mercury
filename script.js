@@ -11,11 +11,11 @@ $(document).ready(function() {
     brython(1);
 
     var encrypt_editor = ace.edit("encrypt_editor");
-    encrypt_editor.setTheme("ace/theme/pastel_on_dark");
+    encrypt_editor.setTheme("ace/theme/chrome");
     encrypt_editor.getSession().setMode("ace/mode/python");
 
     var decrypt_editor = ace.edit("decrypt_editor");
-    decrypt_editor.setTheme("ace/theme/pastel_on_dark");
+    decrypt_editor.setTheme("ace/theme/chrome");
     decrypt_editor.getSession().setMode("ace/mode/python");
 
     $("#encrypt a.execute").click(function() {

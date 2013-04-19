@@ -14,8 +14,8 @@ html, body {
 }
 #container {
     position: absolute;
-    top: $header_height;
-    bottom: $console_height;
+    top: $header_height+1;
+    bottom: $console_height+(-1);
     width: 100%;
 
     #encrypt {
@@ -33,6 +33,7 @@ html, body {
         bottom: 0px;
         right: 0px;
         width: 50%;
+        overflow-y: scroll;
     }
 }
 #console {

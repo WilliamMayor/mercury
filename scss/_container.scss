@@ -1,8 +1,7 @@
 $editor_top: 180px;
 $controls_height: 50px;
 #encrypt, #decrypt {
-    border-right: 1px solid $border_colour;
-
+    
     h1 {
         margin: 10px 0px 0px 30px;
     }
@@ -19,10 +18,12 @@ $controls_height: 50px;
     }
 
     #encrypt_editor, #decrypt_editor { 
-        width: 100%;
         position: absolute;
         top: $editor_top;
         bottom: $controls_height;
+        right: 10px;
+        left: 10px;
+        border: 1px solid darken(#ebebeb, 30%);
     }
 
     .controls {
