@@ -39,6 +39,7 @@ $(document).ready(function() {
     var setup_editor = makeEditor("setup", "/examples/setup.py");
     var encrypt_editor = makeEditor("encrypt", "/examples/encrypt.py");
     var decrypt_editor = makeEditor("decrypt", "/examples/decrypt.py");
+    var hack_editor = makeEditor("hack", "/examples/hack.py");
 
     $("#encrypt a.execute").click(function() {
         var plaintext = $("#encrypt input.input").val();
@@ -72,11 +73,31 @@ $(document).ready(function() {
         return false;
     });
 
+    $("#hack a.execute").click(function() {
+        var ciphertext = $("#hack input.input").val();
+        try {
+            info('Loading python code');
+            evalPython(hack_editor);
+            info('Hacking ' + ciphertext + ' using python code')
+            var plaintext = hack(ciphertext);
+            success('Decrypted into: ' + plaintext)
+            $("#hack input.output").val(plaintext);
+        } catch (err) {
+            error('There was a problem: ' + err);
+        }
+        return false;
+    });
+
     $("#navbar a").click(function() {
         $("#panels").removeClass("hidden");
         $("#panels .panel").hide();
         $("#" + $(this).attr("class")).show(400);
         return false;   
-    })
+    });
+
+    dictionary = {};
+    $.get("dictionary.txt", function(txt) {
+        dictionary = txt.split("\n");
+    });
 });
 

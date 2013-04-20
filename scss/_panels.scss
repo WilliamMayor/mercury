@@ -1,6 +1,7 @@
 #panels {
     width: 1000px;
     margin: auto;
+    padding-bottom: 30px;
 
     &.hidden {
         position: relative;
@@ -21,6 +22,7 @@
             display: inline-block;
             background-color: $alternate_background_color;
             text-align: left;
+            padding-right: 20px;
         }
 
         li {

@@ -59,7 +59,8 @@ html, body {
 
 #panels {
   width: 1000px;
-  margin: auto; }
+  margin: auto;
+  padding-bottom: 30px; }
   #panels.hidden {
     position: relative;
     left: 9999px;
@@ -73,7 +74,8 @@ html, body {
     #panels .instructions ol, #panels .instructions ul {
       display: inline-block;
       background-color: #ecf0f1;
-      text-align: left; }
+      text-align: left;
+      padding-right: 20px; }
     #panels .instructions li {
       margin: 8px 0px; }
   #panels input[type=text] {
