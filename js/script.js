@@ -1,14 +1,11 @@
 error = function(message) {
-    $("#console_output").append($("<li class='error'>" + message + "</li>"));
-    console.log(message);
+    $("#console_output").append($("<li class='error'>" + message + "</li>")).scrollTop($("#console_output")[0].scrollHeight);
 };
 success = function(message) {
-    $("#console_output").append($("<li class='success'>" + message + "</li>"));
-    console.log(message);
+    $("#console_output").append($("<li class='success'>" + message + "</li>")).scrollTop($("#console_output")[0].scrollHeight);
 };
 info = function(message) {
-    $("#console_output").append($("<li class='info'>" + message + "</li>"));
-    console.log(message);
+    $("#console_output").append($("<li class='info'>" + message + "</li>")).scrollTop($("#console_output")[0].scrollHeight);
 };
 makeEditor = function(id, inputfile) {
     var editor = ace.edit(id + "_editor");
