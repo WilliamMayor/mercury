@@ -12,22 +12,7 @@
 
     h1 {
         margin-left: 100px;
-        margin-bottom: 0;
-    }
-
-    .instructions {
-        text-align: center;
-
-        ol, ul {
-            display: inline-block;
-            background-color: $alternate_background_color;
-            text-align: left;
-            padding-right: 20px;
-        }
-
-        li {
-            margin: 8px 0px;
-        }
+        margin-bottom: 20px;
     }
 
     input[type=text] {

@@ -68,16 +68,7 @@ html, body {
     overflow: hidden; }
   #panels h1 {
     margin-left: 100px;
-    margin-bottom: 0; }
-  #panels .instructions {
-    text-align: center; }
-    #panels .instructions ol, #panels .instructions ul {
-      display: inline-block;
-      background-color: #ecf0f1;
-      text-align: left;
-      padding-right: 20px; }
-    #panels .instructions li {
-      margin: 8px 0px; }
+    margin-bottom: 20px; }
   #panels input[type=text] {
     display: block;
     margin: auto;
