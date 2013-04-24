@@ -200,20 +200,20 @@ if(__BRYTHON__.exception_stack.length>0){throw $last(__BRYTHON__.exception_stack
 else{throw Error('Exception')}
 }
 function $report(err){
-console.log(err)
+postMessage({log: err})
 if(err.py_error===undefined){err=RuntimeError(err+'')}
 var trace=err.__name__+': '+err.message
 if(err.__name__=='SyntaxError'||err.__name__==='IndentationError'){
 trace +=err.info
 }
-if(document.$stderr){document.$stderr.__getattr__('write')(trace)}
+if(self.$stderr){self.$stderr.__getattr__('write')(trace)}
 else{err.message +=err.info}
 throw err
 }
 function $src_error(name,module,msg,pos){
 var pos2line={}
 var lnum=1
-var src=document.$py_src[module]
+var src=self.$py_src[module]
 var line_pos={1:0}
 for(i=0;i<src.length;i++){
 pos2line[i]=lnum
@@ -376,14 +376,14 @@ return f
 }
 var $dq_regexp=new RegExp('"',"g")
 function $escape_dq(arg){return arg.replace($dq_regexp,'\\"')}
-document.$stderr={
+self.$stderr={
 __getattr__:function(attr){return this[attr]},
-'write':function(data){console.log(data)}
+'write':function(data){postMessage({log: data})}
 }
-document.$stderr_buff='' 
-document.$stdout={
+self.$stderr_buff='' 
+self.$stdout={
 __getattr__:function(attr){return this[attr]},
-write: function(data){console.log(data)}
+write: function(data){postMessage({log: data})}
 }
 function $type(){}
 $type.__class__=$type
@@ -416,11 +416,11 @@ this.arg=arg
 }
 function $pdict(arg){return new $pdict_class(arg)}
 function $test_item(expr){
-document.$test_result=expr
+self.$test_result=expr
 return bool(expr)
 }
 function $test_expr(){
-return document.$test_result
+return self.$test_result
 }
 Function.prototype.__eq__=function(other){
 if(typeof other !=='function'){return False}
@@ -1262,9 +1262,9 @@ res +=str(args[i])
 if(i<args.length-1){res +=' '}
 }
 res +=end
-document.$stdout.__getattr__('write')(res)
+self.$stdout.__getattr__('write')(res)
 }
-log=function(arg){console.log(arg)}
+log=function(arg){postMessage({log: arg})}
 function $prompt(text,fill){return prompt(text,fill || '')}
 function property(fget, fset, fdel, doc){
 throw NotImplementedError('property not implemented')
@@ -1583,10 +1583,10 @@ None=new $NoneClass()
 Exception=function(msg){
 var err=Error()
 err.info=''
-if(document.$debug && msg.split('\n').length==1){
-var module=document.$line_info[1]
-var line_num=document.$line_info[0]
-var lines=document.$py_src[module].split('\n')
+if(self.$debug && msg.split('\n').length==1){
+var module=self.$line_info[1]
+var line_num=self.$line_info[0]
+var lines=self.$py_src[module].split('\n')
 err.info +="\nmodule '"+module+"' line "+line_num
 err.info +='\n'+lines[line_num-1]
 }
@@ -2403,7 +2403,7 @@ return str[attr].apply(this,args)
 return str
 }()
 function $importer(){
-if(window.XMLHttpRequest){
+if(self.XMLHttpRequest){
 var $xmlhttp=new XMLHttpRequest()
 }else{
 var $xmlhttp=new ActiveXObject("Microsoft.XMLHTTP")
@@ -2427,7 +2427,7 @@ var imp=$importer()
 var $xmlhttp=imp[0],fake_qs=imp[1],timer=imp[2],res=null
 $xmlhttp.onreadystatechange=function(){
 if($xmlhttp.readyState==4){
-window.clearTimeout(timer)
+self.clearTimeout(timer)
 if($xmlhttp.status==200 || $xmlhttp.status==0){res=$xmlhttp.responseText}
 else{
 res=Error()
@@ -2436,7 +2436,7 @@ res.message="No module named '"+module+"'"
 }
 }
 }
-if(document.$debug===undefined)fake_qs="?foo="+__BRYTHON__.version_info[2]
+if(self.$debug===undefined)fake_qs="?foo="+__BRYTHON__.version_info[2]
 $xmlhttp.open('GET',url+fake_qs,false)
 if('overrideMimeType' in $xmlhttp){$xmlhttp.overrideMimeType("text/plain")}
 $xmlhttp.send()
@@ -2558,13 +2558,13 @@ __BRYTHON__.$py_module_alias[modules[i][0]]=modules[i][1]
 return res
 }
 function $import_from(module,names,parent_module,alias){
-console.log(module +","+names+","+parent_module+','+alias)
+postMessage({log: module} +","+names+","+parent_module+','+alias)
 if(parent_module !==undefined){
 var relpath=__BRYTHON__.$py_module_path[parent_module]
 var i=relpath.lastIndexOf('/')
 relpath=relpath.substring(0, i)
 alias=__BRYTHON__.$py_module_alias[parent_module]
-console.log(parent_module+','+alias+','+relpath)
+postMessage({log: parent_module}+','+alias+','+relpath)
 $import_module_search_path_list(module,alias,names,[relpath])
 }else if(alias !==undefined){
 return $import_single(module,alias,names)
@@ -2600,13 +2600,13 @@ var $augmented_assigns={
 "%=":"imod","^=":"ipow"
 }
 function $_SyntaxError(C,msg,indent){
-console.log(msg)
+postMessage({log: msg})
 var ctx_node=C
 while(ctx_node.type!=='node'){ctx_node=ctx_node.parent}
 var tree_node=ctx_node.node
 var module=tree_node.module
 var line_num=tree_node.line_num
-document.$line_info=[line_num,module]
+self.$line_info=[line_num,module]
 if(indent===undefined){$SyntaxError(module,'invalid syntax',$pos)}
 else{throw $IndentationError(module,msg,$pos)}
 }
@@ -2948,7 +2948,7 @@ var cl_cons=new $Node('expression')
 new $NodeJSCtx(cl_cons,js)
 node.parent.insert(rank+2,cl_cons)
 if(scope===null && this.parent.node.module==='__main__'){
-js='window.'+this.name+'='+this.name
+js='self.'+this.name+'='+this.name
 var w_decl=new $Node('expression')
 new $NodeJSCtx(w_decl,js)
 node.parent.insert(rank+3,w_decl)
@@ -3136,7 +3136,7 @@ new $NodeJSCtx(name_decl,js)
 node.parent.children.splice(rank+offset,0,name_decl)
 offset++
 if(scope===null && node.module==='__main__'){
-js='window.'+this.name+'='+this.name
+js='self.'+this.name+'='+this.name
 new_node1=new $Node('expression')
 new $NodeJSCtx(new_node1,js)
 node.parent.children.splice(rank+offset,0,new_node1)
@@ -3550,7 +3550,7 @@ env_str +='}'
 var ctx_node=this
 while(ctx_node.parent!==undefined){ctx_node=ctx_node.parent}
 var module=ctx_node.node.module
-var src=document.$py_src[module]
+var src=self.$py_src[module]
 var qesc=new RegExp('"',"g")
 var args=src.substring(this.args_start,this.body_start).replace(qesc,'\\"')
 var body=src.substring(this.body_start+1,this.body_end).replace(qesc,'\\"')
@@ -3579,7 +3579,7 @@ this.get_src=function(){
 var ctx_node=this
 while(ctx_node.parent!==undefined){ctx_node=ctx_node.parent}
 var module=ctx_node.node.module
-return document.$py_src[module]
+return self.$py_src[module]
 }
 this.to_js=function(){
 if(this.real==='list'){return 'list(['+$to_js(this.tree)+'])'}
@@ -3906,7 +3906,7 @@ if(elt.type==='condition' && elt.token==='elif'){flag=false}
 else if(elt.type==='except'){flag=false}
 else if(elt.type==='single_kw'){flag=false}
 if(flag){
-js='document.$line_info=['+node.line_num+',"'+node.module+'"]'
+js='self.$line_info=['+node.line_num+',"'+node.module+'"]'
 var new_node=new $Node('expression')
 new $NodeJSCtx(new_node,js)
 node.parent.insert(rank,new_node)
@@ -4647,10 +4647,10 @@ src=src.substr(1)
 if(src.charAt(src.length-1)!="\n"){src+='\n'}
 if(module===undefined){module='__main__'}
 __BRYTHON__.scope[module]={}
-document.$py_src[module]=src
+self.$py_src[module]=src
 var root=$tokenize(src,module)
 root.transform()
-if(document.$debug>0){$add_line_num(root,null,module)}
+if(self.$debug>0){$add_line_num(root,null,module)}
 return root
 }
 __BRYTHON__.forbidden=['catch','delete','function','new','this','throw','var','super']
@@ -4931,75 +4931,14 @@ $_SyntaxError(br_err[0],"Unbalanced bracket "+br_stack.charAt(br_stack.length-1)
 return root
 }
 function brython(debug){
-document.$py_src={}
+self.$py_src={}
 __BRYTHON__.$py_module_path={}
 __BRYTHON__.$py_module_alias={}
 __BRYTHON__.modules={}
 __BRYTHON__.$py_next_hash=-Math.pow(2,53)
-document.$debug=debug || 0
+self.$debug=debug || 0
 __BRYTHON__.exception_stack=[]
 __BRYTHON__.scope={}
-var elts=document.getElementsByTagName("script")
-var href=window.location.href
-var href_elts=href.split('/')
-href_elts.pop()
-var script_path=href_elts.join('/')
-__BRYTHON__.path=[script_path]
-for(var $i=0;$i<elts.length;$i++){
-var elt=elts[$i]
-if(elt.type=="text/python"||elt.type==="text/python3"){
-if(elt.src!==''){
-if(window.XMLHttpRequest){
-var $xmlhttp=new XMLHttpRequest()
-}else{
-var $xmlhttp=new ActiveXObject("Microsoft.XMLHTTP")
-}
-$xmlhttp.onreadystatechange=function(){
-var state=this.readyState
-if(state===4){
-src=$xmlhttp.responseText
-}
-}
-$xmlhttp.open('GET',elt.src,false)
-$xmlhttp.send()
-__BRYTHON__.$py_module_path['__main__']=elt.src 
-__BRYTHON__.path.push(elt.src)
-}else{
-var src=(elt.innerHTML || elt.textContent)
-__BRYTHON__.$py_module_path['__main__']='.' 
-}
-try{
-var root=__BRYTHON__.py2js(src,'__main__')
-var js=root.to_js()
-if(debug===2){console.log(js)}
-eval(js)
-}catch(err){
-console.log(err)
-if(err.py_error===undefined){err=RuntimeError(err+'')}
-var trace=err.__name__+': '+err.message
-if(err.__name__=='SyntaxError'||err.__name__==='IndentationError'){
-trace +=err.info
-}
-if(document.$stderr!==undefined){document.$stderr.__getattr__('write')(trace)}
-else{err.message +=err.info}
-throw err
-}
-}else{
-var br_scripts=['brython.js','py_list.js']
-for(var j=0;j<br_scripts.length;j++){
-var bs=br_scripts[j]
-if(elt.src.substr(elt.src.length-bs.length)==bs){
-if(elt.src.length===bs.length ||
-elt.src.charAt(elt.src.length-bs.length-1)=='/'){
-var path=elt.src.substr(0,elt.src.length-bs.length)
-__BRYTHON__.brython_path=path
-__BRYTHON__.path.push(path+'Lib')
-break
-}
-}
-}
-}
-}
 }
 function $XmlHttpClass(obj){
 this.__class__='XMLHttpRequest'
@@ -5019,7 +4958,7 @@ function Ajax(){}
 Ajax.__class__=$type
 Ajax.__str__=function(){return "<class 'Ajax'>"}
 function $AjaxClass(){
-if(window.XMLHttpRequest){
+if(self.XMLHttpRequest){
 var $xmlhttp=new XMLHttpRequest()
 }else{
 var $xmlhttp=new ActiveXObject("Microsoft.XMLHTTP")
@@ -5036,7 +4975,7 @@ else if(state===1 && 'on_loading' in req){req.on_loading(obj)}
 else if(state===2 && 'on_loaded' in req){req.on_loaded(obj)}
 else if(state===3 && 'on_interactive' in req){req.on_interactive(obj)}
 else if(state===4 && 'on_complete' in req){
-if(timer !==null){window.clearTimeout(timer)}
+if(timer !==null){self.clearTimeout(timer)}
 req.on_complete(obj)
 }
 }
@@ -5071,7 +5010,7 @@ function ajax(){
 return new $AjaxClass()
 }
 function $getMouseOffset(target, ev){
-ev=ev || window.event
+ev=ev || self.event
 var docPos=$getPosition(target)
 var mousePos=$mouseCoords(ev)
 return{x:mousePos.x - docPos.x, y:mousePos.y - docPos.y}
@@ -5093,15 +5032,15 @@ return{left:left, top:top, width:width, height:height}
 function $mouseCoords(ev){
 var posx=0
 var posy=0
-if(!ev)var ev=window.event
+if(!ev)var ev=self.event
 if(ev.pageX || ev.pageY){
 posx=ev.pageX
 posy=ev.pageY
 }else if(ev.clientX || ev.clientY){
-posx=ev.clientX + document.body.scrollLeft
-+ document.documentElement.scrollLeft
-posy=ev.clientY + document.body.scrollTop
-+ document.documentElement.scrollTop
+posx=ev.clientX + self.body.scrollLeft
++ self.documentElement.scrollLeft
+posy=ev.clientY + self.body.scrollTop
++ self.documentElement.scrollTop
 }
 var res=object()
 res.x=int(posx)
@@ -5205,11 +5144,11 @@ return this.reader[attr]
 this.__setattr__=(function(obj){
 return function(attr,value){
 if(attr.substr(0,2)=='on'){
-if(window.addEventListener){
+if(self.addEventListener){
 var callback=function(ev){return value($DOMEvent(ev))}
 obj.addEventListener(attr.substr(2),callback)
-}else if(window.attachEvent){
-var callback=function(ev){return value($DOMEvent(window.event))}
+}else if(self.attachEvent){
+var callback=function(ev){return value($DOMEvent(self.event))}
 obj.attachEvent(attr,callback)
 }
 }else if('set_'+attr in obj){return obj['set_'+attr](value)}
@@ -5321,12 +5260,12 @@ this.js[attr]=value
 }
 function $Location(){
 var obj=new object()
-for(var x in window.location){obj[x]=window.location[x]}
+for(var x in self.location){obj[x]=self.location[x]}
 obj.__class__=new $class(this,'Location')
-obj.toString=function(){return window.location.toString()}
+obj.toString=function(){return self.location.toString()}
 return obj
 }
-win=new $JSObject(window)
+win=new $JSObject(self)
 function DOMNode(){}
 function $DOMNode(elt){
 if(elt['$brython_id']===undefined||elt.nodeType===9){
@@ -5342,14 +5281,14 @@ res.children=[this]
 if(isinstance(other,$TagSum)){
 for(var $i=0;$i<other.children.length;$i++){res.children.push(other.children[$i])}
 }else if(isinstance(other,[str,int,float,list,dict,set,tuple])){
-res.children.push(document.createTextNode(str(other)))
+res.children.push(self.createTextNode(str(other)))
 }else{res.children.push(other)}
 return res
 }
 DOMNode.prototype.__class__=DOMObject
 DOMNode.prototype.__delitem__=function(key){
 if(this.nodeType===9){
-var res=document.getElementById(key)
+var res=self.getElementById(key)
 if(res){res.parentNode.removeChild(res)}
 else{throw KeyError(key)}
 }else{
@@ -5393,12 +5332,12 @@ return $getattr(this,attr)
 DOMNode.prototype.__getitem__=function(key){
 if(this.nodeType===9){
 if(typeof key==="string"){
-var res=document.getElementById(key)
+var res=self.getElementById(key)
 if(res){return $DOMNode(res)}
 else{throw KeyError(key)}
 }else{
 try{
-var elts=document.getElementsByTagName(key.name),res=[]
+var elts=self.getElementsByTagName(key.name),res=[]
 for(var $i=0;$i<elts.length;$i++){res.push($DOMNode(elts[$i]))}
 return res
 }catch(err){
@@ -5422,7 +5361,7 @@ for($i=0;$i<other.children.length;$i++){
 obj.appendChild(other.children[$i])
 }
 }else if(typeof other==="string" || typeof other==="number"){
-var $txt=document.createTextNode(other.toString())
+var $txt=self.createTextNode(other.toString())
 obj.appendChild($txt)
 }else{
 obj.appendChild(other)
@@ -5444,17 +5383,17 @@ throw ValueError("can't multiply "+this.__class__+"by "+other)
 DOMNode.prototype.__ne__=function(other){return !this.__eq__(other)}
 DOMNode.prototype.__radd__=function(other){
 var res=$TagSum()
-var txt=document.createTextNode(other)
+var txt=self.createTextNode(other)
 res.children=[txt,this]
 return res 
 }
 DOMNode.prototype.__setattr__=function(attr,value){
 if(attr.substr(0,2)=='on'){
-if(window.addEventListener){
+if(self.addEventListener){
 var callback=function(ev){return value($DOMEvent(ev))}
 this.addEventListener(attr.substr(2),callback)
-}else if(window.attachEvent){
-var callback=function(ev){return value($DOMEvent(window.event))}
+}else if(self.attachEvent){
+var callback=function(ev){return value($DOMEvent(self.event))}
 this.attachEvent(attr,callback)
 }
 }else{
@@ -5478,7 +5417,7 @@ if(obj.getElementsByName===undefined){
 throw TypeError("DOMNode object doesn't support selection by name")
 }
 var res=[]
-var node_list=document.getElementsByName($ns['kw'].__getitem__('name'))
+var node_list=self.getElementsByName($ns['kw'].__getitem__('name'))
 if(node_list.length===0){return[]}
 for(var i=0;i<node_list.length;i++){
 res.push($DOMNode(node_list[i]))
@@ -5489,7 +5428,7 @@ if(obj.getElementsByTagName===undefined){
 throw TypeError("DOMNode object doesn't support selection by tag name")
 }
 var res=[]
-var node_list=document.getElementsByTagName($ns['kw'].__getitem__('tag'))
+var node_list=self.getElementsByTagName($ns['kw'].__getitem__('tag'))
 if(node_list.length===0){return[]}
 for(var i=0;i<node_list.length;i++){
 res.push($DOMNode(node_list[i]))
@@ -5500,7 +5439,7 @@ if(obj.getElementsByClassName===undefined){
 throw TypeError("DOMNode object doesn't support selection by class name")
 }
 var res=[]
-var node_list=document.getElementsByClassName($ns['kw'].__getitem__('classname'))
+var node_list=self.getElementsByClassName($ns['kw'].__getitem__('classname'))
 if(node_list.length===0){return[]}
 for(var i=0;i<node_list.length;i++){
 res.push($DOMNode(node_list[i]))
@@ -5621,7 +5560,7 @@ this.innerText=str(value)
 this.textContent=str(value)
 }
 DOMNode.prototype.set_value=function(value){this.value=value.toString()}
-doc=$DOMNode(document)
+doc=$DOMNode(self)
 function $TagSumClass(){
 this.__class__=$TagSum
 this.children=[]
@@ -5633,13 +5572,13 @@ $TagSumClass.prototype.__add__=function(other){
 if(isinstance(other,$TagSum)){
 this.children=this.children.concat(other.children)
 }else if(isinstance(other,str)){
-this.children=this.children.concat(document.createTextNode(other))
+this.children=this.children.concat(self.createTextNode(other))
 }else{this.children.push(other)}
 return this
 }
 $TagSumClass.prototype.__radd__=function(other){
 var res=$TagSum()
-res.children=this.children.concat(document.createTextNode(other))
+res.children=this.children.concat(self.createTextNode(other))
 return res
 }
 $TagSumClass.prototype.clone=function(){
@@ -5655,7 +5594,7 @@ return new $TagSumClass()
 var $toDOM=function(content){
 if(isinstance(content,DOMNode)){return content}
 if(isinstance(content,str)){
-var _dom=document.createElement('html')
+var _dom=self.createElement('html')
 _dom.innerHTML=content
 return _dom
 }
@@ -5754,3 +5693,28 @@ _class_string=_c.replace(' '+name+' ', '')
 }
 this.__setattr('class', _class_string)
 }
+info = function(message) {
+    postMessage({info: message});
+}
+error = function(message) {
+    postMessage({error: message});
+}
+success = function(message) {
+    postMessage({success: message});
+}
+onmessage = function(event) {
+    if ("init" in event.data) {
+        brython(1);
+        postMessage({info: "initialised worker"});
+    }
+    if ("execute" in event.data) {
+        var results = eval(event.data["execute"]);
+        postMessage({info: results});
+    }
+    if ("src" in event.data) {
+        var src = event.data["src"];
+        var root = __BRYTHON__.py2js(src,'__main__');
+        var js = root.to_js();
+        eval(js);
+    }
+};
