@@ -6,4 +6,4 @@ digits = '0123456789'
 punctuation = """!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""
 printable = digits + ascii_letters + punctuation + whitespace
 
-key = 17
+key = 80
