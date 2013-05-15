@@ -1,3 +1,22 @@
+var ALERTIFY = {
+    init: function() {
+        $(".flashes li").each(function(index, value) {
+            var t = $(value);
+            if (t.hasClass("success")) {
+                alertify.success(t.text());
+            } else if (t.hasClass("error")) {
+                alertify.error(t.text());
+            } else {
+                alertify.log(t.text());
+            }
+        });
+    }
+};
+var APP = {
+    init: function() {
+        ALERTIFY.init();
+    }
+};
 error = function(message) {
     $("#console_output").append($("<li class='error'>" + message + "</li>")).scrollTop($("#console_output")[0].scrollHeight);
 };
@@ -20,18 +39,9 @@ makeEditor = function(id, inputfile) {
     });
     return editor;
 };
-evalPython = function(editor) {
-    var src = editor.getValue();
-    var root = __BRYTHON__.py2js(src);
-    var js = root.to_js();
-    try {
-        eval(js);
-    } catch (err) {
-        throw "Could not evaluate Python code in " + editor + "\n" + err;
-    }
-};
 $(document).ready(function() {
-    brython(1);
+    APP.init();
+    return;
     var worker = new Worker("/js/worker.js");
     worker.onmessage = function(event) {
         if ("info" in event.data) info(event.data["info"]);
