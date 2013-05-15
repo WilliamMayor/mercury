@@ -12,44 +12,93 @@ var ALERTIFY = {
         });
     }
 };
+var MPANELS = {
+    init: function() {
+        MPANELS.show("intro");
+    },
+    show: function(mpanel) {
+        $(".mpanel")
+            .hide()
+            .filter("." + mpanel)
+            .show();
+    },
+    console: {
+        error: function(message) {
+            $(".mpanel.console ul.console").append($("<li class='error'>" + message + "</li>")).scrollTop($(".mpanel.console ul.console")[0].scrollHeight);
+        },
+        success: function(message) {
+            $(".mpanel.console ul.console").append($("<li class='success'>" + message + "</li>")).scrollTop($(".mpanel.console ul.console")[0].scrollHeight);
+        },
+        info: function(message) {
+            $(".mpanel.console ul.console").append($("<li class='info'>" + message + "</li>")).scrollTop($(".mpanel.console ul.console")[0].scrollHeight);
+        }
+    }
+};
+var TOPBAR = {
+    init: function() {
+        for (var i=0; i<TOPBAR.links.length; i++) {
+            TOPBAR.click(i);
+        }
+    },
+    links: ["intro", "contact", "links", "lobby", "create", "load", "encrypt", "decrypt", "hack", "console", "save"],
+    click: function(i) {
+        $(".top-bar a." + TOPBAR.links[i]).click(function() {
+            MPANELS.show(TOPBAR.links[i]);
+            return false;
+        });
+    }
+};
+var WORKER = {
+    init: function() {
+        WORKER.worker = new Worker("/static/js/worker.js");
+        WORKER.worker.onmessage = function(event) {
+            if ("info" in event.data) MPANELS.console.info(event.data["info"]);
+            if ("error" in event.data) MPANELS.console.error(event.data["error"]);
+            if ("success" in event.data) MPANELS.console.success(event.data["success"]);
+            if ("log" in event.data) console.log(event.data["log"]);
+        };
+        WORKER.worker.postMessage({init: true});
+        $.get("/static/dictionary.txt", function(txt) {
+            WORKER.worker.postMessage({dictionary: txt.split("\n")});
+        });
+    }
+};
+var EDITORS = {
+    names: ["encrypt", "decrypt", "hack"],
+    editors: {},
+    init: function() {
+        for (var i=0; i<EDITORS.names.length; i++) {
+            var editor = ace.edit(EDITORS.names[i] + "_editor");
+            editor.setTheme("ace/theme/chrome");
+            editor.getSession().setMode("ace/mode/python");
+            editor.setPrintMarginColumn(false);
+            EDITORS.editors[EDITORS.names[i]] = editor;
+        }
+    }
+};
 var APP = {
     init: function() {
         ALERTIFY.init();
+        MPANELS.init();
+        TOPBAR.init();
+        WORKER.init();
+        EDITORS.init();
+        $(document).foundation();
     }
 };
-error = function(message) {
-    $("#console_output").append($("<li class='error'>" + message + "</li>")).scrollTop($("#console_output")[0].scrollHeight);
-};
-success = function(message) {
-    $("#console_output").append($("<li class='success'>" + message + "</li>")).scrollTop($("#console_output")[0].scrollHeight);
-};
-info = function(message) {
-    $("#console_output").append($("<li class='info'>" + message + "</li>")).scrollTop($("#console_output")[0].scrollHeight);
-};
+
 makeEditor = function(id, inputfile) {
-    var editor = ace.edit(id + "_editor");
-    editor.setTheme("ace/theme/chrome");
-    editor.getSession().setMode("ace/mode/python");
-    editor.setPrintMarginColumn(false);
     $.get(inputfile).done(function(src) {
         editor.setValue(src);
         editor.navigateFileStart();
     }).fail(function() {
         error("Could not fetch " + inputfile);
     });
-    return editor;
 };
 $(document).ready(function() {
     APP.init();
     return;
-    var worker = new Worker("/js/worker.js");
-    worker.onmessage = function(event) {
-        if ("info" in event.data) info(event.data["info"]);
-        if ("error" in event.data) error(event.data["error"]);
-        if ("success" in event.data) success(event.data["success"]);
-        if ("log" in event.data) console.log(event.data["log"]);
-    };
-    worker.postMessage({init: true});
+    
 
     var setup_editor = makeEditor("setup", "/examples/setup.py");
     var encrypt_editor = makeEditor("encrypt", "/examples/encrypt.py");
@@ -129,10 +178,6 @@ $(document).ready(function() {
         $("#panels .panel").hide();
         $("#" + $(this).attr("class")).show(400);
         return false;
-    });
-
-    $.get("dictionary.txt", function(txt) {
-        worker.postMessage({dictionary: txt.split("\n")});
     });
 });
 

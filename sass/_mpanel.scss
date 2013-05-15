@@ -1,0 +1,35 @@
+.mpanel {
+
+    .editor {
+        height: 500px;
+        margin-bottom: 20px;
+        border: 1px solid $asbestos;
+    }
+
+    .console {
+        height: 500px;
+        border: 1px solid $concrete;
+        overflow: auto;
+        background-color: #2C3E50;
+        list-style: none;
+        padding: 5px;
+        font-family: 'Ubuntu Mono', sans-serif;
+
+        li {
+            white-space: nowrap;
+            line-height: 20px;
+            
+            &.info {
+                color: $clouds;
+            }
+
+            &.success {
+                color: $success-color;
+            }
+
+            &.error {
+                color: $alert-color;
+            }
+        }   
+    }
+}

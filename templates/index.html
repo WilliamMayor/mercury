@@ -1,78 +1,100 @@
 {% extends "base.html" %}
 {% block content %}
-<div id="navbar">
-    <ul class="main">
-        <li>home</li>
-        <li>chat</li>
-        <li>code</li>
-    </ul>
-    <ul class="home">
-        <li><a class="intro" href="#intro">intro</a></li>
-        <li><a class="contact" href="#contact">contact</a></li>
-        <li><a class="links" href="#links">links</a></li>
-    </ul>
-    <ul class="chat">
-        <li><a class="lobby" href="#lobby">lobby</a></li>
-        <li><a class="create" href="#create">create</a></li>
-    </ul>
-    <ul class="code">
-        <li><a class="encrypt" href="#encrypt">encrypt</a></li>
-        <li><a class="decrypt" href="#decrypt">decrypt</a></li>
-        <li><a class="hack" href="#hack">hack</a></li>
-        <li><a class="console" href="#console">console</a></li>
-        <li><a class="load" href="#load">load</a></li>
-        <li><a class="save" href="#save">save</a></li>
-    </ul>
-</div>
-<div id="panels">
-    <div class="panel home intro">
-    
-    </div>
-    <div class="panel home contact">
-    
-    </div>
-    <div class="panel home links">
-    
-    </div>
-    <div class="panel chat lobby">
-    
-    </div>
-    <div class="panel chat create">
-   
-    </div>
-    <div class="panel code encrypt">
-        <h1>Encrypt</h1>
-        <input type="text" class="input" placeholder="Message"/>
-        <div class="editor" id="encrypt_editor"></div>
-        <a href="#encrypt" class="execute">encrypt</a>
-        <input type="text" class="output" placeholder="Output"/>
-    </div>
-    <div class="panel code decrypt">
-        <h1>Decrypt</h1>
-        <input type="text" class="input" placeholder="Ciphertext"/>
-        <div class="editor" id="decrypt_editor"></div>
-        <a href="#decrypt" class="execute">decrypt</a>
-        <input type="text" class="output" placeholder="Output"/>
-    </div>
-    <div class="panel code hack">
-        <h1>Hack</h1>
-        <input type="text" class="input" placeholder="Ciphertext"/>
-        <div class="editor" id="hack_editor"></div>
-        <a href="#hack" class="execute">hack</a>
-        <input type="text" class="output" placeholder="Output"/>
-    </div>
-    <div class="panel code console">
-        <h1>Console</h1>
-        <ul>
-            <li class="info">Welcome to the mercury extension builder</li>
-            <li class="info">Useful information will appear in this console</li>
-        </ul>
-    </div>
-    <div class="panel code load">
+<div class="mpanel home intro">
 
+</div>
+<div class="mpanel home contact">
+
+</div>
+<div class="mpanel home links">
+
+</div>
+<div class="mpanel chat lobby">
+
+</div>
+<div class="mpanel chat create">
+
+</div>
+<div class="mpanel code encrypt row">
+    <div class="large-10 large-centered small-12 columns">
+        <div class="row">
+            <h1>Encrypt</h1>
+        </div>
+        <div class="row">
+            <input type="text" class="input" placeholder="Message"/>
+        </div>
+        <div class="row">
+            <div class="editor" id="encrypt_editor"></div>
+        </div>
+        <div class="row">
+            <div class="large-2 small-2 columns">
+                <a href="#encrypt" class="button alert-dark small">encrypt</a>
+            </div>
+            <div class="large-10 small-10 columns">
+                <input type="text" class="output" placeholder="Output"/>
+            </div>
+        </div>
     </div>
-    <div class="panel code save">
-        
+</div>
+<div class="mpanel code decrypt row">
+    <div class="large-10 large-centered small-12 columns">
+        <div class="row">
+            <h1>Decrypt</h1>
+        </div>
+        <div class="row">
+            <input type="text" class="input" placeholder="Ciphertext"/>
+        </div>
+        <div class="row">
+            <div class="editor" id="decrypt_editor"></div>
+        </div>
+        <div class="row">
+            <div class="large-2 small-2 columns">
+                <a href="#decrypt" class="button alert-dark small">decrypt</a>
+            </div>
+            <div class="large-10 small-10 columns">
+                <input type="text" class="output" placeholder="Output"/>
+            </div>
+        </div>
     </div>
+</div>
+<div class="mpanel code hack row">
+    <div class="large-10 large-centered small-12 columns">
+        <div class="row">
+            <h1>Hack</h1>
+        </div>
+        <div class="row">
+            <input type="text" class="input" placeholder="Ciphertext"/>
+        </div>
+        <div class="row">
+            <div class="editor" id="hack_editor"></div>
+        </div>
+        <div class="row">
+            <div class="large-2 small-2 columns">
+                <a href="#hack" class="button alert-dark small">hack</a>
+            </div>
+            <div class="large-10 small-10 columns">
+                <input type="text" class="output" placeholder="Output"/>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="mpanel code console row">
+    <div class="large-10 large-centered small-12 columns">
+        <div class="row">
+            <h1>Console</h1>
+        </div>
+        <div class="row">
+            <ul class="console">
+                <li class="info">Welcome to the mercury extension builder</li>
+                <li class="info">Useful information will appear in this console</li>
+            </ul>
+        </div>
+    </div>
+</div>
+<div class="mpanel code load">
+
+</div>
+<div class="mpanel code save">
+    
 </div>
 {% endblock %}

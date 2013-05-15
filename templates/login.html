@@ -1,8 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-<form method="POST" action="/login/">
-    <input type="text" name="username" placeholder="Username" />
-    <input type="password" name="password" placeholder="Password" />
-    <input type="submit" value="Login" />
-</form>
+<div class="large-3 small-6 small-centered large-centered columns">
+    <form method="POST" action="/login/">
+        <input type="text" name="username" placeholder="Username" />
+        <input type="password" name="password" placeholder="Password" />
+        <input type="submit" class="button" value="Login" />
+    </form>
+</div>
 {% endblock %}
