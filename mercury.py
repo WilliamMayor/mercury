@@ -1,4 +1,5 @@
 import hashlib
+import os
 
 from flask import (
     Flask,
@@ -6,7 +7,8 @@ from flask import (
     request,
     flash,
     url_for,
-    redirect)
+    redirect,
+    jsonify)
 from flask.ext.login import (
     LoginManager,
     current_user,
@@ -38,6 +40,7 @@ class Config:
         (1, u'User 1', 'abcde', '\x85\t\x15\xeb\xef\x89\xde\xc1\xd0\xf4O\x80\ryT\xf0\x07\xe6\x0bP\xa0\x18?;H\xcb\xa9\xf0\xfe\xd1z\x06'),
         (2, u'User 2', 'fghij', '\xee\xa3\xa1\xb1\xa8w*\xfd\xdfW\xd7\xa8\xbaL\xb4\x9e\xb3\xd7bN\xb0\x04\xe7\xa8f5\xc5\x1f\xa1\xc9H\x9b'),
     ]
+    MODULE_PATH = './modules/'
 
 app = Flask(__name__)
 app.config.from_object('mercury.Config')
@@ -87,6 +90,50 @@ def logout():
 def index():
     return render_template('index.html', user=current_user, page='index')
 
+
+@app.route('/api/modules/')
+@app.route('/api/modules/<id>/')
+def modules(id=None, methods=['GET', 'POST', 'PUT']):
+    if request.method == 'GET':
+        modules = get_available_modules()
+        if id is None:
+            return jsonify(modules=modules)
+        else:
+            if any([True for m in modules['user'] + modules['public'] if m == id]):
+                parts = id.split('-')
+                path = os.path.join(app.config['MODULE_PATH'], parts[0], parts[1], parts[2])
+                return jsonify(module=get_module(path, id))
+            return jsonify(error='no module of that name'), 404
+
+
+def get_available_modules():
+    modules = dict(public=[], user=[])
+    path_n = app.config['MODULE_PATH']
+    for name in os.listdir(path_n):
+        path_m = os.path.join(path_n, name)
+        if not os.path.isdir(path_m):
+            continue
+        for module in os.listdir(path_m):
+            path_v = os.path.join(path_m, module)
+            if not os.path.isdir(path_v):
+                continue
+            for version in os.listdir(path_v):
+                path_f = os.path.join(path_v, version)
+                if not os.path.isdir(path_f):
+                    continue
+                if not current_user.is_anonymous() and name == current_user.name:
+                    modules['user'].append('-'.join([name, module, version]))
+                elif version.endswith('p'):
+                    modules['public'].append('-'.join([name, module, version]))
+    return modules
+
+
+def get_module(path, name):
+    m = dict(name=name)
+    for p in ['encrypt', 'decrypt', 'hack']:
+        with open(os.path.join(path, p + '.py'), 'r') as f:
+            m[p] = f.read()
+    return m
 
 if __name__ == '__main__':
     app.run()
