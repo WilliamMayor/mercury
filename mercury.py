@@ -88,44 +88,72 @@ def logout():
 @app.route('/')
 @login_required
 def index():
+    current_user.modules = get_available_modules()
     return render_template('index.html', user=current_user, page='index')
 
 
+def get_available_modules():
+    '''
+    {user: {module: {version: id}, ...}, public: {module: {version: id}, ...}}
+    '''
+    modules = dict(public={}, user={})
+    try:
+        path_n = app.config['MODULE_PATH']
+        for name in os.listdir(path_n):
+            try:
+                path_m = os.path.join(path_n, name)
+                for module in os.listdir(path_m):
+                    try:
+                        path_v = os.path.join(path_m, module)
+                        for version in os.listdir(path_v):
+                            if not os.path.isdir(os.path.join(path_v, version)):
+                                continue
+                            mid = '-'.join([name, module, version])
+                            if name == current_user.name:
+                                try:
+                                    modules['user'][module][version] = mid
+                                except KeyError:
+                                    modules['user'][module] = {version: mid}
+                            elif version.endswith('p'):
+                                try:
+                                    modules['public'][name][module][version] = mid
+                                except KeyError:
+                                    try:
+                                        modules['public'][name][module] = {version: mid}
+                                    except KeyError:
+                                        modules['public'][name] = {module: {version: mid}}
+                    except:
+                        pass
+            except:
+                pass
+    except:
+        pass
+    return modules
+
+
 @app.route('/api/modules/')
-@app.route('/api/modules/<id>/')
-def modules(id=None, methods=['GET', 'POST', 'PUT']):
+@app.route('/api/modules/<_id>/')
+def modules(_id=None, methods=['GET', 'POST', 'PUT']):
     if request.method == 'GET':
         modules = get_available_modules()
-        if id is None:
+        if _id is None:
             return jsonify(modules=modules)
         else:
-            if any([True for m in modules['user'] + modules['public'] if m == id]):
-                parts = id.split('-')
+            if id_in_modules(modules, _id):
+                parts = _id.split('-')
                 path = os.path.join(app.config['MODULE_PATH'], parts[0], parts[1], parts[2])
-                return jsonify(module=get_module(path, id))
+                return jsonify(module=get_module(path, _id))
             return jsonify(error='no module of that name'), 404
 
 
-def get_available_modules():
-    modules = dict(public=[], user=[])
-    path_n = app.config['MODULE_PATH']
-    for name in os.listdir(path_n):
-        path_m = os.path.join(path_n, name)
-        if not os.path.isdir(path_m):
-            continue
-        for module in os.listdir(path_m):
-            path_v = os.path.join(path_m, module)
-            if not os.path.isdir(path_v):
-                continue
-            for version in os.listdir(path_v):
-                path_f = os.path.join(path_v, version)
-                if not os.path.isdir(path_f):
-                    continue
-                if not current_user.is_anonymous() and name == current_user.name:
-                    modules['user'].append('-'.join([name, module, version]))
-                elif version.endswith('p'):
-                    modules['public'].append('-'.join([name, module, version]))
-    return modules
+def id_in_modules(modules, _id):
+    if isinstance(modules, basestring):
+        return modules == _id
+    else:
+        is_in = False
+        for val in modules.values():
+            is_in |= id_in_modules(val, _id)
+        return is_in
 
 
 def get_module(path, name):

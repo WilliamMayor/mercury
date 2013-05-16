@@ -15,6 +15,7 @@ var ALERTIFY = {
 var MPANELS = {
     init: function() {
         MPANELS.show("intro");
+        MPANELS.load.init();
     },
     show: function(mpanel) {
         $(".mpanel")
@@ -31,6 +32,27 @@ var MPANELS = {
         },
         info: function(message) {
             $(".mpanel.console ul.console").append($("<li class='info'>" + message + "</li>")).scrollTop($(".mpanel.console ul.console")[0].scrollHeight);
+        }
+    },
+    load: {
+        init: function() {
+            $(".mpanel.load form").submit(function() {
+                var module = $(".mpanel.load form select").val();
+                $.getJSON("/api/modules/" + module)
+                    .done(function(data) {
+                        for (var i=0; i < EDITORS.names.length; i++) {
+                            var e = EDITORS.editors[EDITORS.names[i]];
+                            e.setValue(data['module'][EDITORS.names[i]]);
+                            e.navigateFileStart();
+                        }
+                        alertify.success("Loaded module!");
+                    })
+                    .fail(function(data) {
+                        console.log(data);
+                        alertify.error("Could not load module, sorry.");
+                    });
+                return false;
+            });
         }
     }
 };
@@ -83,62 +105,6 @@ var APP = {
         TOPBAR.init();
         WORKER.init();
         EDITORS.init();
-        $.getJSON('/api/modules/').done(function(data) {
-            var user = {};
-            var _public = {};
-            console.log(data);
-            for (var i=0; i<data['modules']['user'].length; i++) {
-                var iparts = data['modules']['user'][i].split('-');
-                if (!(iparts[0] in user)) {
-                    user[iparts[0]] = [];
-                }
-                if (!(iparts[1] in user[iparts[0]])) {
-                    user[iparts[0]][iparts[1]] = [];
-                }
-                user[iparts[0]][iparts[1]].push(iparts[2]);
-            }
-            for (var j=0; j<data['modules']['public'].length; j++) {
-                var jparts = data['modules']['public'][j].split('-');
-                if (!(jparts[0] in _public)) {
-                    _public[jparts[0]] = {};
-                }
-                if (!(jparts[1] in _public[jparts[0]])) {
-                    _public[jparts[0]][jparts[1]] = [];
-                }
-                _public[jparts[0]][jparts[1]].push(jparts[2]);
-            }
-            var select = $(".mpanel.load select");
-            for (var n in user) {
-                var namegroup = $("<optgroup>");
-                namegroup.attr("label", n);
-                for (var m in user[n]) {
-                    var modulegroup = $("<optgroup>");
-                    modulegroup.attr("label", m);
-                    for (var k=0; k<user[n][m].length; k++) {
-                        var option = $("<option>"+user[n][m][k]+"</option>");
-                        option.attr("value", n + "-" + m + "-" + user[n][m][k]);
-                        modulegroup.append(option);
-                    }
-                    namegroup.append(modulegroup);
-                }
-                select.append(namegroup);
-            }
-            for (var n in _public) {
-                var namegroup = $("<optgroup>");
-                namegroup.attr("label", n);
-                for (var m in _public[n]) {
-                    var modulegroup = $("<optgroup>");
-                    modulegroup.attr("label", m);
-                    for (var k=0; k<_public[n][m].length; k++) {
-                        var option = $("<option>"+_public[n][m][k]+"</option>");
-                        option.attr("value", n + "-" + m + "-" + _public[n][m][k]);
-                        modulegroup.append(option);
-                    }
-                    namegroup.append(modulegroup);
-                }
-                select.append(namegroup);
-            }
-        });
         $(document).foundation();
     }
 };
