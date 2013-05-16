@@ -16,6 +16,8 @@ var MPANELS = {
     init: function() {
         MPANELS.show("intro");
         MPANELS.load.init();
+        MPANELS.encrypt.init();
+        MPANELS.decrypt.init();
     },
     show: function(mpanel) {
         $(".mpanel")
@@ -25,9 +27,11 @@ var MPANELS = {
     },
     console: {
         error: function(message) {
+            alertify.error("Check your console");
             $(".mpanel.console ul.console").append($("<li class='error'>" + message + "</li>")).scrollTop($(".mpanel.console ul.console")[0].scrollHeight);
         },
         success: function(message) {
+            alertify.success("Check your console");
             $(".mpanel.console ul.console").append($("<li class='success'>" + message + "</li>")).scrollTop($(".mpanel.console ul.console")[0].scrollHeight);
         },
         info: function(message) {
@@ -51,6 +55,56 @@ var MPANELS = {
                         console.log(data);
                         alertify.error("Could not load module, sorry.");
                     });
+                return false;
+            });
+        }
+    },
+    encrypt: {
+        init: function() {
+            $(".mpanel.encrypt a.button").click(function() {
+                var plaintext = $(".mpanel.encrypt input.input").val();
+                try {
+                    MPANELS.console.info('Loading python code');
+                    WORKER.worker.postMessage({src: EDITORS.editors["encrypt"].getValue()});
+                    MPANELS.console.info('Encrypting ' + plaintext + ' using python code');
+                    var output = ("0000" + (Math.random()*Math.pow(36,4) << 0).toString(36)).substr(-4);
+                    WORKER.worker.addEventListener('message', function(event) {
+                        if (output in event.data) {
+                            var ciphertext = event.data[output];
+                            MPANELS.console.success('Encrypted into: ' + ciphertext);
+                            $(".mpanel.encrypt input.output").val(ciphertext);
+                            this.removeEventListener('message',arguments.callee,false);
+                        }
+                    }, false);
+                    WORKER.worker.postMessage({execute: "encrypt('" + plaintext + "');", output: output});
+                } catch (err) {
+                    MPANELS.console.error('There was a problem: ' + err);
+                }
+                return false;
+            });
+        }
+    },
+    decrypt: {
+        init: function() {
+            $(".mpanel.decrypt a.button").click(function() {
+                var ciphertext = $(".mpanel.decrypt input.input").val();
+                try {
+                    MPANELS.console.info('Loading python code');
+                    WORKER.worker.postMessage({src: EDITORS.editors["decrypt"].getValue()});
+                    MPANELS.console.info('Encrypting ' + ciphertext + ' using python code');
+                    var output = ("0000" + (Math.random()*Math.pow(36,4) << 0).toString(36)).substr(-4);
+                    WORKER.worker.addEventListener('message', function(event) {
+                        if (output in event.data) {
+                            var plaintext = event.data[output];
+                            MPANELS.console.success('Decrypted into: ' + plaintext);
+                            $(".mpanel.decrypt input.output").val(plaintext);
+                            this.removeEventListener('message',arguments.callee,false);
+                        }
+                    }, false);
+                    WORKER.worker.postMessage({execute: "decrypt('" + ciphertext + "');", output: output});
+                } catch (err) {
+                    MPANELS.console.error('There was a problem: ' + err);
+                }
                 return false;
             });
         }
@@ -108,98 +162,7 @@ var APP = {
         $(document).foundation();
     }
 };
-
-makeEditor = function(id, inputfile) {
-    $.get(inputfile).done(function(src) {
-        editor.setValue(src);
-        editor.navigateFileStart();
-    }).fail(function() {
-        error("Could not fetch " + inputfile);
-    });
-};
 $(document).ready(function() {
     APP.init();
-    return;
-    
-
-    var setup_editor = makeEditor("setup", "/examples/setup.py");
-    var encrypt_editor = makeEditor("encrypt", "/examples/encrypt.py");
-    var decrypt_editor = makeEditor("decrypt", "/examples/decrypt.py");
-    var hack_editor = makeEditor("hack", "/examples/hack.py");
-
-    $("#encrypt a.execute").click(function() {
-        var plaintext = $("#encrypt input.input").val();
-        try {
-            info('Loading python code');
-            worker.postMessage({src: setup_editor.getValue()});
-            worker.postMessage({src: encrypt_editor.getValue()});
-            info('Encrypting ' + plaintext + ' using python code');
-            var output = ("0000" + (Math.random()*Math.pow(36,4) << 0).toString(36)).substr(-4);
-            worker.addEventListener('message', function(event) {
-                if (output in event.data) {
-                    var ciphertext = event.data[output];
-                    success('Encrypted into: ' + ciphertext);
-                    $("#encrypt input.output").val(ciphertext);
-                    this.removeEventListener('message',arguments.callee,false);
-                }
-            }, false);
-            worker.postMessage({execute: "encrypt('" + plaintext + "');", output: output});
-        } catch (err) {
-            error('There was a problem: ' + err);
-        }
-        return false;
-    });
-
-    $("#decrypt a.execute").click(function() {
-        var ciphertext = $("#decrypt input.input").val();
-        try {
-            info('Loading python code');
-            worker.postMessage({src: setup_editor.getValue()});
-            worker.postMessage({src: decrypt_editor.getValue()});
-            info('Decrypting ' + ciphertext + ' using python code');
-            var output = ("0000" + (Math.random()*Math.pow(36,4) << 0).toString(36)).substr(-4);
-            worker.addEventListener('message', function(event) {
-                if (output in event.data) {
-                    var plaintext = event.data[output];
-                    success('Decrypted into: ' + plaintext);
-                    $("#decrypt input.output").val(plaintext);
-                    this.removeEventListener('message',arguments.callee,false);
-                }
-            }, false);
-            worker.postMessage({execute: "decrypt('" + ciphertext + "');", output: output});
-        } catch (err) {
-            error('There was a problem: ' + err);
-        }
-        return false;
-    });
-
-    $("#hack a.execute").click(function() {
-        var ciphertext = $("#hack input.input").val();
-        try {
-            info('Loading python code');
-            worker.postMessage({src: hack_editor.getValue()});
-            info('Hacking ' + ciphertext + ' using python code');
-            var output = ("0000" + (Math.random()*Math.pow(36,4) << 0).toString(36)).substr(-4);
-            worker.addEventListener('message', function(event) {
-                if (output in event.data) {
-                    var plaintext = event.data[output];
-                    success('Hacked into: ' + plaintext);
-                    $("#hack input.output").val(plaintext);
-                    this.removeEventListener('message',arguments.callee,false);
-                }
-            }, false);
-            worker.postMessage({execute: "hack('" + ciphertext + "');", output: output});
-        } catch (err) {
-            error('There was a problem: ' + err);
-        }
-        return false;
-    });
-
-    $("#navbar a").click(function() {
-        $("#panels").removeClass("hidden");
-        $("#panels .panel").hide();
-        $("#" + $(this).attr("class")).show(400);
-        return false;
-    });
 });
 
