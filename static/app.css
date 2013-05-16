@@ -7593,6 +7593,20 @@ form span.postfix {
   display: inline;
 }
 
+@font-face {
+  font-family: 'Ubuntu Mono';
+  src: url("/static/fonts/Ubuntu_Mono/UbuntuMono-Regular.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Lato';
+  src: url("/static/fonts/Lato/Lato-Light.ttf") format("truetype");
+  font-weight: normal;
+  font-style: normal;
+}
+
 /* line 3, ../sass/_alertify.core.scss */
 .alertify,
 .alertify-show,
@@ -7979,7 +7993,7 @@ form span.postfix {
   background-color: #2C3E50;
   list-style: none;
   padding: 5px;
-  font-family: 'Ubuntu Mono', sans-serif;
+  font-family: 'Ubuntu Mono', monospace;
 }
 /* line 18, ../sass/_mpanel.scss */
 .mpanel .console li {
