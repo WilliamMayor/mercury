@@ -18,6 +18,8 @@ var MPANELS = {
         MPANELS.load.init();
         MPANELS.encrypt.init();
         MPANELS.decrypt.init();
+        MPANELS.hack.init();
+        MPANELS.save.init();
     },
     show: function(mpanel) {
         $(".mpanel")
@@ -46,9 +48,10 @@ var MPANELS = {
                     .done(function(data) {
                         for (var i=0; i < EDITORS.names.length; i++) {
                             var e = EDITORS.editors[EDITORS.names[i]];
-                            e.setValue(data['module'][EDITORS.names[i]]);
-                            e.navigateFileStart();
+                            e.setValue(data['module'][EDITORS.names[i]],-1);
                         }
+                        var parts = data['module']['name'].split('-');
+                        MPANELS.save.set(parts[1], parts[2]);
                         alertify.success("Loaded module!");
                     })
                     .fail(function(data) {
@@ -107,6 +110,56 @@ var MPANELS = {
                 }
                 return false;
             });
+        }
+    },
+    hack: {
+        init: function() {
+            $(".mpanel.hack a.button").click(function() {
+                var ciphertext = $(".mpanel.hack input.input").val();
+                try {
+                    MPANELS.console.info('Loading python code');
+                    WORKER.worker.postMessage({src: EDITORS.editors["hack"].getValue()});
+                    MPANELS.console.info('Hacking ' + ciphertext + ' using python code');
+                    var output = ("0000" + (Math.random()*Math.pow(36,4) << 0).toString(36)).substr(-4);
+                    WORKER.worker.addEventListener('message', function(event) {
+                        if (output in event.data) {
+                            var plaintext = event.data[output];
+                            MPANELS.console.success('Hacked into: ' + plaintext);
+                            $(".mpanel.hack input.output").val(plaintext);
+                            this.removeEventListener('message',arguments.callee,false);
+                        }
+                    }, false);
+                    WORKER.worker.postMessage({execute: "hack('" + ciphertext + "');", output: output});
+                } catch (err) {
+                    MPANELS.console.error('There was a problem: ' + err);
+                }
+                return false;
+            });
+        }
+    },
+    save: {
+        init: function() {
+            $(".mpanel.save form").submit(function() {
+                for (var i=0; i < EDITORS.names.length; i++) {
+                    var e = EDITORS.editors[EDITORS.names[i]];
+                    var src = e.getValue();
+                    $(".mpanel.save input[name=" + EDITORS.names[i] + "]").val(src);
+                }
+                $.post("/api/modules/", $(".mpanel.save form").serialize())
+                    .done(function(data) {
+                        console.log(data);
+                        alertify.success("Saved module!");
+                    })
+                    .fail(function(data) {
+                        console.log(data);
+                        alertify.error("Could not save module, sorry.");
+                    });
+                return false;
+            });
+        },
+        set: function(name, version) {
+            $(".mpanel.save input[name=name]").val(name);
+            $(".mpanel.save input[name=version]").val(version);
         }
     }
 };

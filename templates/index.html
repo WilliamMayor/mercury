@@ -129,6 +129,28 @@
     </div>
 </div>
 <div class="mpanel code save">
-    
+    <div class="row">
+        <h1>Save Module</h1>
+    </div>
+    <div class="row">
+        <p>If this is a new module, give it a new name. If it's an improvement to an existing module (yours or someone else's) then keep the name the same and give it a new version number. If you want to overwrite any previous code then keep the name and version the same. If you'd like other people to be able to look at your code and modify it for themselves then add the letter 'p' after your version number. If you've been modifying someone else's module then any saves you make will appear under your account, not theirs.</p>
+    </div>
+    <div class="large-5 small-6 small-centered large-centered columns">
+        <form action="/" method="POST">
+            <div class="row">
+                <div class="large-9 small-9 columns">
+                    <input type="text" name="name" placeholder="Name" />
+                </div>
+                <div class="large-3 small-3 columns">
+                    <input type="text" name="version" placeholder="Version" />
+                </div>
+            </div>
+            <input type="hidden" name="encrypt" />
+            <input type="hidden" name="decrypt" />
+            <input type="hidden" name="hack" />
+            <input type="submit" value="Save" class="button" />
+        </form>
+    </div>
 </div>
 {% endblock %}
+

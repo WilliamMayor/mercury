@@ -131,9 +131,10 @@ def get_available_modules():
     return modules
 
 
-@app.route('/api/modules/')
-@app.route('/api/modules/<_id>/')
-def modules(_id=None, methods=['GET', 'POST', 'PUT']):
+@app.route('/api/modules/', methods=['GET', 'POST'])
+@app.route('/api/modules/<_id>/', methods=['GET', 'POST'])
+@login_required
+def modules(_id=None):
     if request.method == 'GET':
         modules = get_available_modules()
         if _id is None:
@@ -144,6 +145,13 @@ def modules(_id=None, methods=['GET', 'POST', 'PUT']):
                 path = os.path.join(app.config['MODULE_PATH'], parts[0], parts[1], parts[2])
                 return jsonify(module=get_module(path, _id))
             return jsonify(error='no module of that name'), 404
+    path = os.path.join(app.config['MODULE_PATH'], current_user.name, request.form['name'], request.form['version'])
+    if not os.path.exists(path):
+        os.makedirs(path)
+    for m in ['encrypt', 'decrypt', 'hack']:
+        with open(os.path.join(path, m + '.py'), 'w') as f:
+            f.write(request.form[m])
+    return jsonify(modules=get_available_modules())
 
 
 def id_in_modules(modules, _id):
