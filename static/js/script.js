@@ -60,6 +60,68 @@ var MPANELS = {
                     });
                 return false;
             });
+        },
+        load: function(modules) {
+            /**
+            <select name="module">
+                {% if user.modules.user | length > 0 %}
+                <optgroup label="{{ user.name }}">
+                    {% for m in user.modules.user %}
+                    <optgroup label="{{ m }}">
+                        {% for v in user.modules.user[m] %}
+                        <option value="{{ user.name }}-{{ m }}-{{ v }}">{{ v }}</option>
+                        {% endfor %}
+                    </optgroup>    
+                    {% endfor %}
+                </optgroup>
+                {% endif %}
+                {% for u in user.modules.public %}
+                <optgroup label="{{ u }}">
+                    {% for m in user.modules.public[u] %}
+                    <optgroup label="{{ m }}">
+                        {% for v in user.modules.public[u][m] %}
+                        <option value="{{ u }}-{{ m }}-{{ v }}">{{ v }}</option>
+                        {% endfor %}
+                    </optgroup>    
+                    {% endfor %}
+                </optgroup>
+                {% endfor %}
+            </select>
+            **/
+            var select = $(".mpanel.load select");
+            select.children().remove();
+            var optgroup = null;
+            var n,m,v, val, option, parts;
+            for (m in modules['user']) {
+                optgroup = null;
+                for (v in modules['user'][m]) {
+                    val = modules['user'][m][v];
+                    option = $("<option value='" + val + "'>" + v + "</option>");
+                    if (optgroup === null) {
+                        parts = val.split("-");
+                        optgroup = $("<optgroup label='" + parts[0] + "-" + parts[1] + "'></optgroup>");
+
+                    }
+                    optgroup.append(option);
+                }
+                select.append(optgroup);
+            }
+            for (n in modules['public']) {
+                for (m in modules['public'][n]) {
+                    optgroup = null;
+                    for (v in modules['public'][n][m]) {
+                        val = modules['public'][n][m][v];
+                        option = $("<option value='" + val + "'>" + v + "</option>");
+                        if (optgroup === null) {
+                            parts = val.split("-");
+                            optgroup = $("<optgroup label='" + parts[0] + "-" + parts[1] + "'></optgroup>");
+
+                        }
+                        optgroup.append(option);
+                    }
+                    select.append(optgroup);
+                }
+            }
         }
     },
     encrypt: {
@@ -147,7 +209,7 @@ var MPANELS = {
                 }
                 $.post("/api/modules/", $(".mpanel.save form").serialize())
                     .done(function(data) {
-                        console.log(data);
+                        MPANELS.load.load(data['modules']);
                         alertify.success("Saved module!");
                     })
                     .fail(function(data) {

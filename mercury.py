@@ -94,7 +94,7 @@ def index():
 
 def get_available_modules():
     '''
-    {user: {module: {version: id}, ...}, public: {module: {version: id}, ...}}
+    {user: {module: {version: id}, ...}, public: {name: {module: {version: id}, ...}}}
     '''
     modules = dict(public={}, user={})
     try:

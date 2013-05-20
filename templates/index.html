@@ -26,26 +26,22 @@
         <form action="/" method="GET">
             <select name="module">
                 {% if user.modules.user | length > 0 %}
-                <optgroup label="{{ user.name }}">
-                    {% for m in user.modules.user %}
-                    <optgroup label="{{ m }}">
-                        {% for v in user.modules.user[m] %}
-                        <option value="{{ user.name }}-{{ m }}-{{ v }}">{{ v }}</option>
-                        {% endfor %}
-                    </optgroup>    
+                {% for m in user.modules.user %}
+                <optgroup label="{{ user.name }}-{{ m }}">
+                    {% for v in user.modules.user[m] %}
+                    <option value="{{ user.name }}-{{ m }}-{{ v }}">{{ v }}</option>
                     {% endfor %}
-                </optgroup>
+                </optgroup>    
+                {% endfor %}
                 {% endif %}
                 {% for u in user.modules.public %}
-                <optgroup label="{{ u }}">
-                    {% for m in user.modules.public[u] %}
-                    <optgroup label="{{ m }}">
-                        {% for v in user.modules.public[u][m] %}
-                        <option value="{{ u }}-{{ m }}-{{ v }}">{{ v }}</option>
-                        {% endfor %}
-                    </optgroup>    
+                {% for m in user.modules.public[u] %}
+                <optgroup label="{{ u }}-{{ m }}">
+                    {% for v in user.modules.public[u][m] %}
+                    <option value="{{ u }}-{{ m }}-{{ v }}">{{ v }}</option>
                     {% endfor %}
-                </optgroup>
+                </optgroup>    
+                {% endfor %}
                 {% endfor %}
             </select>
             <input type="submit" value="Load" class="button" />
