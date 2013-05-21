@@ -1,5 +1,6 @@
 import hashlib
 import os
+import redis
 
 from flask import (
     Flask,
@@ -8,17 +9,15 @@ from flask import (
     flash,
     url_for,
     redirect,
-    jsonify)
+    jsonify,
+    Response)
 from flask.ext.login import (
     LoginManager,
     current_user,
     login_required,
     login_user,
     logout_user,
-    UserMixin,
-    AnonymousUser,
-    confirm_login,
-    fresh_login_required)
+    UserMixin)
 
 
 class User(UserMixin):
@@ -42,6 +41,7 @@ class Config:
     ]
     MODULE_PATH = './modules/'
 
+
 app = Flask(__name__)
 app.config.from_object('mercury.Config')
 app.config.from_envvar('MERCURY_CONFIG_PATH')
@@ -52,6 +52,8 @@ USER_NAMES = dict((u.name, u) for u in USERS.itervalues())
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.login_message = u'Please log in to access this page.'
+
+red = redis.StrictRedis()
 
 
 @login_manager.user_loader
@@ -89,7 +91,61 @@ def logout():
 @login_required
 def index():
     current_user.modules = get_available_modules()
-    return render_template('index.html', user=current_user, page='index')
+    return render_template('index.html', user=current_user, page='index', rooms=app.config['ROOMS'])
+
+
+@app.route('/api/modules/', methods=['GET', 'POST'])
+@app.route('/api/modules/<_id>/', methods=['GET', 'POST'])
+@login_required
+def modules(_id=None):
+    if request.method == 'GET':
+        modules = get_available_modules()
+        if _id is None:
+            return jsonify(modules=modules)
+        else:
+            if id_in_modules(modules, _id):
+                parts = _id.split('-')
+                path = os.path.join(app.config['MODULE_PATH'], parts[0], parts[1], parts[2])
+                return jsonify(module=get_module(path, _id))
+            return jsonify(error='no module of that name'), 404
+    path = os.path.join(app.config['MODULE_PATH'], current_user.name, request.form['name'], request.form['version'])
+    if not os.path.exists(path):
+        os.makedirs(path)
+    for m in ['encrypt', 'decrypt', 'hack']:
+        with open(os.path.join(path, m + '.py'), 'w') as f:
+            f.write(request.form[m])
+    return jsonify(modules=get_available_modules())
+
+
+@app.route('/api/chat/', methods=['GET', 'POST'])
+@app.route('/api/chat/<_id>/', methods=['GET', 'POST'])
+@login_required
+def chat(_id=None):
+    if _id is None:
+        if request.method == 'GET':
+            return jsonify(rooms=app.config['ROOMS'])
+        name = request.form['name']
+        if name in app.config['ROOMS']:
+            return jsonify(error='A room with that name already exists'), 400
+        app.config['ROOMS'].append(name)
+        return jsonify(room=name)
+    if _id not in app.config['ROOMS']:
+        return jsonify(error='No room with that name exists'), 400
+    if request.method == 'GET':
+        return Response(chat_stream(_id), mimetype="text/event-stream")
+    message = request.form['message']
+    user = current_user.name
+    red.publish(_id, u'[%s]: %s' % (user, message))
+    return jsonify(success='message posted')
+
+
+def chat_stream(name):
+    pubsub = red.pubsub()
+    pubsub.subscribe(name)
+    # TODO: handle client disconnection.
+    for message in pubsub.listen():
+        print message
+        yield 'data: %s\n\n' % message['data']
 
 
 def get_available_modules():
@@ -131,28 +187,6 @@ def get_available_modules():
     return modules
 
 
-@app.route('/api/modules/', methods=['GET', 'POST'])
-@app.route('/api/modules/<_id>/', methods=['GET', 'POST'])
-@login_required
-def modules(_id=None):
-    if request.method == 'GET':
-        modules = get_available_modules()
-        if _id is None:
-            return jsonify(modules=modules)
-        else:
-            if id_in_modules(modules, _id):
-                parts = _id.split('-')
-                path = os.path.join(app.config['MODULE_PATH'], parts[0], parts[1], parts[2])
-                return jsonify(module=get_module(path, _id))
-            return jsonify(error='no module of that name'), 404
-    path = os.path.join(app.config['MODULE_PATH'], current_user.name, request.form['name'], request.form['version'])
-    if not os.path.exists(path):
-        os.makedirs(path)
-    for m in ['encrypt', 'decrypt', 'hack']:
-        with open(os.path.join(path, m + '.py'), 'w') as f:
-            f.write(request.form[m])
-    return jsonify(modules=get_available_modules())
-
 
 def id_in_modules(modules, _id):
     if isinstance(modules, basestring):
@@ -172,4 +206,4 @@ def get_module(path, name):
     return m
 
 if __name__ == '__main__':
-    app.run()
+    app.run(threaded=True, host='0.0.0.0')

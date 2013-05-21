@@ -1,7 +1,24 @@
 {% extends "base.html" %}
 {% block content %}
 <div class="mpanel home intro">
-
+    <div class="row">
+        <h1>Introduction</h1>
+    </div>
+    <div class="row">
+        <p>Welcome to UCL's 2013 Summer Challenge. First of all, congratulations for picking the best course! This is the Computer Security challenge where we'll learn:</p>
+        <ul>
+            <li>How to program in Python</li>
+            <li>How to encrypt and decrypt messages</li>
+            <li>How to go about cracking encryption</li>
+            <li>The history of computer security</li>
+            <li>The future of computer security</li>
+            <li>l33t haxxor skilz</li>
+        </ul>
+    </div>
+    <div class="row">
+        <p>What's this site for? We'll explain it in detail during the course but... in case you forget...</p>
+        <p>You can use the ribbon at the top of the page to navigate the site, there are three main areas. 1) The home area, this area, where you'll find information about the course and links to more information about the course. 2) The chat area, this area contains a chat room system. There's a lobby where you can browse active chat rooms and choose to join them. There's an option to create a new chat room. There's also a list of all of the chat rooms you're currently participating in.</p>
+    </div>
 </div>
 <div class="mpanel home contact">
 
@@ -10,10 +27,19 @@
 
 </div>
 <div class="mpanel chat lobby">
-
+    <ul class="rooms">
+    {% for room in rooms %}
+        <li><a class="room" href="{{ room }}">{{ room }}</a></li>
+    {% endfor %}
+    </ul>
 </div>
 <div class="mpanel chat create">
-
+    <div class="large-3 small-6 small-centered large-centered columns">
+        <form method="POST" action="/api/chat/">
+            <input type="text" name="name" placeholder="Room name" />
+            <input type="submit" class="button" value="Create" />
+        </form>
+    </div>
 </div>
 <div class="mpanel code load row">
     <div class="row">
