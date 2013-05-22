@@ -30,6 +30,9 @@ var MPANELS = {
             .filter("." + mpanel)
             .show();
     },
+    exists: function(name) {
+        return $(".mpanel." + name).length;
+    },
     console: {
         error: function(message) {
             alertify.error("Check your console");
@@ -231,11 +234,17 @@ var MPANELS = {
         init: function() {
             $(".mpanel.lobby ul.rooms").on("click", "a", function() {
                 var room_name = $(this).text();
-                TOPBAR.chat.add(room_name);
-                MPANELS.chat.add(room_name);
+                if (!MPANELS.exists(room_name)) {
+                    TOPBAR.chat.add(room_name);
+                    MPANELS.chat.add(room_name);
+                }
                 MPANELS.show(room_name);
                 return false;
             });
+        },
+        add: function(name) {
+            var li = $("<li><a class='room' href='" + name + "'>" + name + "</a></li>");
+            $(".mpanel.lobby ul.rooms").append(li);
         }
     },
     create: {
@@ -246,6 +255,7 @@ var MPANELS = {
                         TOPBAR.chat.add(data['room']);
                         MPANELS.chat.add(data['room']);
                         $(".mpanel.create form")[0].reset();
+                        MPANELS.lobby.add(data['room']);
                         MPANELS.show(data['room']);
                         alertify.success("Created chat room!");
                     })
@@ -261,7 +271,7 @@ var MPANELS = {
         init: function() {
             $("body").on("submit", ".mpanel.chat.room form", function() {
                 var name;
-                var classList = $(this).parent("div").attr('class').split(/\s+/);
+                var classList = $(this).parents("div.mpanel").attr('class').split(/\s+/);
                 $.each(classList, function(index, item){
                     if($.inArray(item, ["mpanel", "chat", "room"]) == -1 ){
                           name = item;
@@ -280,12 +290,17 @@ var MPANELS = {
             });
         },
         add: function(name) {
-            var div = $("<div class='mpanel chat room " + name + "'></div>");
+            var mpanel = $("<div class='mpanel chat room " + name + "'></div>");
+            mpanel.append("<div class='row'><h1>" + name + "</h1></div>");
+            var conversation = $("<div class='row conversation'></div>");
             var ul = $("<ul class='messages'></ul>");
+            conversation.append(ul);
+            mpanel.append(conversation);
+            var chatbar = $("<div class='row chatbar'></div>");
             var form = $("<form method='POST' action='/api/chat/" + name + "/'><input type='text' name='message' placeholder='Message' /><input type='submit' class='button' value='Send' /></form>");
-            div.append(ul);
-            div.append(form);
-            $("body").append(div);
+            chatbar.append(form);
+            mpanel.append(chatbar);
+            $("body").append(mpanel);
             var source = new EventSource("/api/chat/" + name + "/");
             source.onmessage = function(e) {
                 var li = $("<li></li>");

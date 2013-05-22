@@ -27,11 +27,20 @@
 
 </div>
 <div class="mpanel chat lobby">
-    <ul class="rooms">
-    {% for room in rooms %}
-        <li><a class="room" href="{{ room }}">{{ room }}</a></li>
-    {% endfor %}
-    </ul>
+    <div class="row">
+        <h1>Lobby</h1>
+    </div>
+    <div class="row">
+        <p>In the lobby you can see what chat rooms are already open and click on one to join it.</p>
+    </div>
+    <div class="row">
+        Choose a room:
+        <ul class="rooms">
+        {% for room in rooms %}
+            <li><a class="room" href="{{ room }}">{{ room }}</a></li>
+        {% endfor %}
+        </ul>
+    </div>
 </div>
 <div class="mpanel chat create">
     <div class="large-3 small-6 small-centered large-centered columns">

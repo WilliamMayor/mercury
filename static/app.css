@@ -7980,12 +7980,16 @@ form span.postfix {
 }
 
 /* line 3, ../sass/_mpanel.scss */
+.mpanel a:hover {
+  text-decoration: underline;
+}
+/* line 7, ../sass/_mpanel.scss */
 .mpanel .editor {
   height: 500px;
   margin-bottom: 20px;
   border: 1px solid #7f8c8d;
 }
-/* line 9, ../sass/_mpanel.scss */
+/* line 13, ../sass/_mpanel.scss */
 .mpanel .console {
   height: 500px;
   border: 1px solid #95a5a6;
@@ -7995,20 +7999,56 @@ form span.postfix {
   padding: 5px;
   font-family: 'Ubuntu Mono', monospace;
 }
-/* line 18, ../sass/_mpanel.scss */
+/* line 22, ../sass/_mpanel.scss */
 .mpanel .console li {
   white-space: nowrap;
   line-height: 20px;
 }
-/* line 22, ../sass/_mpanel.scss */
+/* line 26, ../sass/_mpanel.scss */
 .mpanel .console li.info {
   color: #ecf0f1;
 }
-/* line 26, ../sass/_mpanel.scss */
+/* line 30, ../sass/_mpanel.scss */
 .mpanel .console li.success {
   color: #2ecc71;
 }
-/* line 30, ../sass/_mpanel.scss */
+/* line 34, ../sass/_mpanel.scss */
 .mpanel .console li.error {
   color: #e74c3c;
+}
+
+/* line 2, ../sass/_lobby.scss */
+.mpanel.lobby ul {
+  margin-left: 100px;
+  margin-top: 20px;
+}
+/* line 6, ../sass/_lobby.scss */
+.mpanel.lobby ul li {
+  list-style: none;
+}
+
+/* line 1, ../sass/_chatroom.scss */
+.mpanel.chat.room {
+  height: 100%;
+}
+/* line 4, ../sass/_chatroom.scss */
+.mpanel.chat.room h1 {
+  height: 50px;
+}
+/* line 8, ../sass/_chatroom.scss */
+.mpanel.chat.room .chatbar {
+  height: 50px;
+}
+/* line 12, ../sass/_chatroom.scss */
+.mpanel.chat.room .conversation {
+  height: 500px;
+  overflow: auto;
+  border: 1px solid #34495e;
+  padding: 5px;
+  margin-bottom: 10px;
+}
+/* line 20, ../sass/_chatroom.scss */
+.mpanel.chat.room form input[type=submit] {
+  position: relative;
+  left: 9999px;
 }
