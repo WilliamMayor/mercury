@@ -18,7 +18,8 @@
     }
 
     form input[type=submit] {
-        position: relative;
+        position: absolute;
         left: 9999px;
+        display: none;
     }
 }

@@ -8049,6 +8049,7 @@ form span.postfix {
 }
 /* line 20, ../sass/_chatroom.scss */
 .mpanel.chat.room form input[type=submit] {
-  position: relative;
+  position: absolute;
   left: 9999px;
+  display: none;
 }
