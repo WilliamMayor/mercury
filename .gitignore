@@ -5,3 +5,4 @@ config.py
 *.pyc
 venv
 modules
+logs

@@ -1,5 +1,7 @@
 import hashlib
 import os
+import fcntl
+
 import redis
 
 from flask import (
@@ -33,13 +35,16 @@ class User(UserMixin):
 
 
 class Config:
-    DEBUG = False
-    SECRET_KEY = 'Dl^\x01\x88\xe2w\x93\xab\xccP\x04\xb1\xeb~\xf6v\xe2u\x82\xcc5\x7fk'
+    DEBUG = True
+    SECRET_KEY = 'abc'
+    THREADED = True
     USERS = [
-        (1, u'User 1', 'abcde', '\x85\t\x15\xeb\xef\x89\xde\xc1\xd0\xf4O\x80\ryT\xf0\x07\xe6\x0bP\xa0\x18?;H\xcb\xa9\xf0\xfe\xd1z\x06'),
-        (2, u'User 2', 'fghij', '\xee\xa3\xa1\xb1\xa8w*\xfd\xdfW\xd7\xa8\xbaL\xb4\x9e\xb3\xd7bN\xb0\x04\xe7\xa8f5\xc5\x1f\xa1\xc9H\x9b'),
+        # username: User, password: password
+        (1, u'User', 'salt', 'z7\xb8\\\x89\x18\xea\xc1\x9a\x90\x89\xc0\xfaZ*\xb4\xdc\xe3\xf9\x05(\xdc\xde\xec\x10\x8b#\xdd\xf3`{\x99')
     ]
     MODULE_PATH = './modules/'
+    ROOMS = []
+    LOG_DIR = './logs/'
 
 
 app = Flask(__name__)
@@ -133,9 +138,13 @@ def chat(_id=None):
         return jsonify(error='No room with that name exists'), 400
     if request.method == 'GET':
         return Response(chat_stream(_id), mimetype="text/event-stream")
-    message = request.form['message']
     user = current_user.name
-    red.publish(_id, u'[%s]: %s' % (user, message))
+    message = u'[%s]: %s' % (user, request.form['message'])
+    red.publish(_id, message)
+    with open(app.config['LOG_DIR'] + '/' + _id + '.log', 'a') as f:
+        fcntl.flock(f, fcntl.LOCK_EX)
+        f.write(message + '\n')
+        fcntl.flock(f, fcntl.LOCK_UN)
     return jsonify(success='message posted')
 
 
@@ -144,7 +153,6 @@ def chat_stream(name):
     pubsub.subscribe(name)
     # TODO: handle client disconnection.
     for message in pubsub.listen():
-        print message
         yield 'data: %s\n\n' % message['data']
 
 
