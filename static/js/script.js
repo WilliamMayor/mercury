@@ -57,7 +57,7 @@ var MPANELS = {
                             e.setValue(data['module'][EDITORS.names[i]],-1);
                         }
                         var parts = data['module']['name'].split('-');
-                        MPANELS.save.set(parts[0] + '-' + parts[1], parts[2]);
+                        MPANELS.save.set(parts[1], parts[2]);
                         alertify.success("Loaded module!");
                         MPANELS.show("encrypt");
                     })
@@ -218,8 +218,8 @@ var MPANELS = {
                 return false;
             });
         },
-        add: function(name) {
-            var li = $("<li><a class='room' href='" + name.replace(' ', '_') + "'>" + name + "</a></li>");
+        add: function(room_name, safe_name) {
+            var li = $("<li><a class='room' href='" + safe_name + "'>" + room_name + "</a></li>");
             $(".mpanel.lobby ul.rooms").append(li);
         }
     },
@@ -228,11 +228,13 @@ var MPANELS = {
             $(".mpanel.create form").submit(function() {
                 $.post("/api/chat/", $(".mpanel.create form").serialize())
                     .done(function(data) {
-                        TOPBAR.chat.add(data['room']);
-                        MPANELS.chat.add(data['room']);
+                        var room_name = data['room']['name'];
+                        var safe_name = room_name.replace(' ', '_');
+                        TOPBAR.chat.add(room_name, safe_name);
+                        MPANELS.chat.add(room_name, safe_name);
                         $(".mpanel.create form")[0].reset();
-                        MPANELS.lobby.add(data['room']);
-                        MPANELS.show(data['room']);
+                        MPANELS.lobby.add(room_name, safe_name);
+                        MPANELS.show(safe_name);
                         alertify.success("Created chat room!");
                     })
                     .fail(function(data) {
@@ -245,25 +247,7 @@ var MPANELS = {
     },
     chat: {
         init: function() {
-            $("body").on("submit", ".mpanel.chat.room form", function() {
-                var name;
-                var classList = $(this).parents("div.mpanel").attr('class').split(/\s+/);
-                $.each(classList, function(index, item){
-                    if($.inArray(item, ["mpanel", "chat", "room"]) == -1 ){
-                          name = item;
-                    }
-                });
-                var that = $(this);
-                $.post("/api/chat/" + name + "/", that.serialize())
-                    .done(function(data) {
-                        that[0].reset();
-                    })
-                    .fail(function(data) {
-                        console.log(data);
-                        alertify.error("Error sending message");
-                    });
-                return false;
-            });
+
         },
         add: function(room_name, safe_name) {
             var mpanel = $("<div class='mpanel chat room " + safe_name + "'></div>");
@@ -277,18 +261,62 @@ var MPANELS = {
             chatbar.append(form);
             mpanel.append(chatbar);
             $("body").append(mpanel);
+
+            var worker = new Worker("/static/js/worker.js");
+            worker.postMessage({init: true});
             var source = new EventSource("/api/chat/" + safe_name + "/");
-            source.onmessage = function(e) {
-                var li = $("<li></li>");
-                var parts = e.data.split("]:");
-                if (parts.length === 1) {
-                    li.append(e.data);
-                } else {
-                    var span = $("<span class='user'>" + parts[0].slice(1) + "</span>");
-                    li.append("[").append(span).append("]: ").append(parts[1]);
-                }
-                ul.append(li);
-            };
+            $.getJSON("/api/chat/" + safe_name + "/code/")
+                .done(function(data) {
+                    worker.postMessage({src: data['module']['encrypt']});
+                    worker.postMessage({src: data['module']['decrypt']});
+                    source.onmessage = function(e) {
+                        var parts = e.data.split("]: ", 2);
+                        if (parts.length === 1) {
+                            var li = $("<li></li>");
+                            li.text(e.data);
+                            ul.append(li);
+                        } else {
+                            var user = parts[0].slice(1);
+                            var ciphertext = parts[1];
+                            var output = ("0000" + (Math.random()*Math.pow(36,4) << 0).toString(36)).substr(-4);
+                            worker.addEventListener('message', function(event) {
+                                if (output in event.data) {
+                                    var user_span = $("<span class='user " + user + "'>" + user + "</span>");
+                                    var message_span = $("<span></span>");
+                                    message_span.text(event.data[output]);
+                                    var li = $("<li></li>");
+                                    li.append("[").append(user_span).append("]: ").append(message_span);
+                                    ul.append(li);
+                                    this.removeEventListener('message',arguments.callee,false);
+                                }
+                            });
+                            worker.postMessage({execute: "decrypt('" + ciphertext.replace("'", "\'") + "');", output: output});
+                        }
+                    };
+                })
+                .fail(function(data) {
+                    console.log(data);
+                    alertify.error("Could not load chat room, sorry.");
+                });
+            form.submit(function() {
+                var plaintext = $(this).find("input[name=message]").val();
+                var output = ("0000" + (Math.random()*Math.pow(36,4) << 0).toString(36)).substr(-4);
+                worker.addEventListener('message', function(event) {
+                    if (output in event.data) {
+                        $.post("/api/chat/" + safe_name + "/", {'message': event.data[output]})
+                            .done(function(data) {
+                                form[0].reset();
+                            })
+                            .fail(function(data) {
+                                console.log(data);
+                                alertify.error("Error sending message");
+                            });
+                        this.removeEventListener('message',arguments.callee,false);
+                    }
+                });
+                worker.postMessage({execute: "encrypt('" + plaintext.replace("'", "\\'") + "');", output: output});
+                return false;
+            });
         }
     }
 };
@@ -307,7 +335,8 @@ var TOPBAR = {
     }
 };
 var WORKER = {
-    init: function() {
+    workers: {},
+    init: function(name) {
         WORKER.worker = new Worker("/static/js/worker.js");
         WORKER.worker.onmessage = function(event) {
             if ("info" in event.data) MPANELS.console.info(event.data["info"]);

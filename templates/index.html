@@ -46,6 +46,27 @@
     <div class="large-3 small-6 small-centered large-centered columns">
         <form method="POST" action="/api/chat/">
             <input type="text" name="name" placeholder="Room name" />
+            <label for="module">Encryption module</label>
+            <select name="module">
+                {% if user.modules.user | length > 0 %}
+                {% for m in user.modules.user %}
+                <optgroup label="{{ user.id }}-{{ m }}">
+                    {% for v in user.modules.user[m] if v.endswith('p')%}
+                    <option value="{{ user.id }}-{{ m }}-{{ v }}">{{ v }}</option>
+                    {% endfor %}
+                </optgroup>    
+                {% endfor %}
+                {% endif %}
+                {% for u in user.modules.public %}
+                {% for m in user.modules.public[u] %}
+                <optgroup label="{{ u }}-{{ m }}">
+                    {% for v in user.modules.public[u][m] %}
+                    <option value="{{ u }}-{{ m }}-{{ v }}">{{ v }}</option>
+                    {% endfor %}
+                </optgroup>    
+                {% endfor %}
+                {% endfor %}
+            </select>
             <input type="submit" class="button" value="Create" />
         </form>
     </div>

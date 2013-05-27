@@ -1,9 +1,11 @@
-ul.messages span.user {
-    color: #{{ color }};
-}
 a:hover {
     color: #{{ color }} !important;
 }
 input:focus {
     border-color: #{{ color }} !important;
 }
+{% for user in users %}
+.messages .user.{{ user.id }} {
+    color: #{{ user.colour }};
+}
+{% endfor %}

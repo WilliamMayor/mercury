@@ -58,12 +58,26 @@ def get_user(username):
     return User(username, *details)
 
 
+def get_users():
+    users = []
+    for user in red.smembers('users'):
+        values = red.hmget('user:%s' % user, ['salt', 'password', 'colour'])
+        users.append(User(user, *values))
+    return users
+
+
 def get_rooms():
-    return red.smembers('rooms')
+    rooms = red.smembers('rooms')
+    return dict((r, get_room(r)[0]) for r in rooms)
 
 
-def add_room(name):
+def add_room(name, module):
     red.sadd('rooms', name)
+    red.hmset('room:%s' % name, dict(module=module))
+
+
+def get_room(name):
+    return red.hmget('room:%s' % name, ['module'])
 
 
 @login_manager.user_loader
@@ -107,7 +121,7 @@ def index():
 @app.route('/theme.css')
 @login_required
 def theme():
-    return Response(render_template('theme.css', color=current_user.colour), mimetype='text/css')
+    return Response(render_template('theme.css', color=current_user.colour, users=get_users()), mimetype='text/css')
 
 
 @app.route('/api/modules/', methods=['GET', 'POST'])
@@ -124,6 +138,8 @@ def modules(_id=None):
                 path = os.path.join(app.config['MODULE_PATH'], parts[0], parts[1], parts[2])
                 return jsonify(module=get_module(path, _id))
             return jsonify(error='no module of that name'), 404
+    if '-' in request.form['name']:
+        return jsonify(error='cannot name a module with a hyphen'), 400
     path = os.path.join(app.config['MODULE_PATH'], current_user.name, request.form['name'], request.form['version'])
     if not os.path.exists(path):
         os.makedirs(path)
@@ -142,10 +158,11 @@ def chat(_id=None):
         if request.method == 'GET':
             return jsonify(rooms=rooms)
         name = request.form['name']
+        module = request.form['module']
         if name in rooms:
             return jsonify(error='A room with that name already exists'), 400
-        add_room(name)
-        return jsonify(room=name)
+        add_room(name, module)
+        return jsonify(room=dict(name=name, module=module))
     _id = _id.replace('_', ' ')
     if _id not in rooms:
         return jsonify(error='No room with that name exists'), 400
@@ -159,6 +176,18 @@ def chat(_id=None):
         f.write(message + '\n')
         fcntl.flock(f, fcntl.LOCK_UN)
     return jsonify(success='message posted')
+
+
+@app.route('/api/chat/<_id>/code/')
+@login_required
+def chat_worker(_id):
+    details = get_room(_id)
+    if None in details:
+        return jsonify(error='no module of that name'), 404
+    module = details[0]
+    parts = module.split('-')
+    path = os.path.join(app.config['MODULE_PATH'], parts[0], parts[1], parts[2])
+    return jsonify(module=get_module(path, module))
 
 
 def chat_stream(name):
