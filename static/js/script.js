@@ -59,6 +59,7 @@ var MPANELS = {
                         var parts = data['module']['name'].split('-');
                         MPANELS.save.set(parts[1], parts[2]);
                         alertify.success("Loaded module!");
+                        MPANELS.show("encrypt");
                     })
                     .fail(function(data) {
                         console.log(data);
@@ -68,32 +69,6 @@ var MPANELS = {
             });
         },
         load: function(modules) {
-            /**
-            <select name="module">
-                {% if user.modules.user | length > 0 %}
-                <optgroup label="{{ user.name }}">
-                    {% for m in user.modules.user %}
-                    <optgroup label="{{ m }}">
-                        {% for v in user.modules.user[m] %}
-                        <option value="{{ user.name }}-{{ m }}-{{ v }}">{{ v }}</option>
-                        {% endfor %}
-                    </optgroup>    
-                    {% endfor %}
-                </optgroup>
-                {% endif %}
-                {% for u in user.modules.public %}
-                <optgroup label="{{ u }}">
-                    {% for m in user.modules.public[u] %}
-                    <optgroup label="{{ m }}">
-                        {% for v in user.modules.public[u][m] %}
-                        <option value="{{ u }}-{{ m }}-{{ v }}">{{ v }}</option>
-                        {% endfor %}
-                    </optgroup>    
-                    {% endfor %}
-                </optgroup>
-                {% endfor %}
-            </select>
-            **/
             var select = $(".mpanel.load select");
             select.children().remove();
             var optgroup = null;
@@ -234,16 +209,17 @@ var MPANELS = {
         init: function() {
             $(".mpanel.lobby ul.rooms").on("click", "a", function() {
                 var room_name = $(this).text();
-                if (!MPANELS.exists(room_name)) {
-                    TOPBAR.chat.add(room_name);
-                    MPANELS.chat.add(room_name);
+                var safe_name = $(this).attr('href');
+                if (!MPANELS.exists(safe_name)) {
+                    TOPBAR.chat.add(room_name, safe_name);
+                    MPANELS.chat.add(room_name, safe_name);
                 }
-                MPANELS.show(room_name);
+                MPANELS.show(safe_name);
                 return false;
             });
         },
         add: function(name) {
-            var li = $("<li><a class='room' href='" + name + "'>" + name + "</a></li>");
+            var li = $("<li><a class='room' href='" + name.replace(' ', '_') + "'>" + name + "</a></li>");
             $(".mpanel.lobby ul.rooms").append(li);
         }
     },
@@ -289,22 +265,28 @@ var MPANELS = {
                 return false;
             });
         },
-        add: function(name) {
-            var mpanel = $("<div class='mpanel chat room " + name + "'></div>");
-            mpanel.append("<div class='row'><h1>" + name + "</h1></div>");
+        add: function(room_name, safe_name) {
+            var mpanel = $("<div class='mpanel chat room " + safe_name + "'></div>");
+            mpanel.append("<div class='row'><h1>" + room_name + "</h1></div>");
             var conversation = $("<div class='row conversation'></div>");
             var ul = $("<ul class='messages'></ul>");
             conversation.append(ul);
             mpanel.append(conversation);
             var chatbar = $("<div class='row chatbar'></div>");
-            var form = $("<form method='POST' action='/api/chat/" + name + "/'><input type='text' name='message' placeholder='Message' /><input type='submit' class='button' value='Send' /></form>");
+            var form = $("<form method='POST' action='/api/chat/" + safe_name + "/'><input type='text' name='message' placeholder='Message' /><input type='submit' class='button' value='Send' /></form>");
             chatbar.append(form);
             mpanel.append(chatbar);
             $("body").append(mpanel);
-            var source = new EventSource("/api/chat/" + name + "/");
+            var source = new EventSource("/api/chat/" + safe_name + "/");
             source.onmessage = function(e) {
                 var li = $("<li></li>");
-                li.text(e.data);
+                var parts = e.data.split("]:");
+                if (parts.length === 1) {
+                    li.append(e.data);
+                } else {
+                    var span = $("<span class='user'>" + parts[0].slice(1) + "</span>");
+                    li.append("[").append(span).append("]: ").append(parts[1]);
+                }
                 ul.append(li);
             };
         }
@@ -318,8 +300,8 @@ var TOPBAR = {
         });
     },
     chat: {
-        add: function(name) {
-            var li = $("<li><a class='nav' href='" + name + "'>" + name + "</a></li>");
+        add: function(room_name, safe_name) {
+            var li = $("<li><a class='nav' href='" + safe_name + "'>" + room_name + "</a></li>");
             $(".top-bar ul.chat").append(li);
         }
     }

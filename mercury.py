@@ -24,35 +24,25 @@ from flask.ext.login import (
 
 class User(UserMixin):
 
-    def __init__(self, _id, name, salt, _hash):
-        self.id = _id
-        self.name = name
+    def __init__(self, name, salt, _hash, colour):
+        self.id = name
         self.salt = salt
         self.hash = _hash
+        self.colour = colour
 
     def correct_password(self, password):
-        return self.hash == hashlib.sha256(password + self.salt).digest()
+        return self.hash == hashlib.sha256(password + self.salt).digest().encode('hex')
 
 
 class Config:
     DEBUG = True
     SECRET_KEY = 'abc'
-    THREADED = True
-    USERS = [
-        # username: User, password: password
-        (1, u'User', 'salt', 'z7\xb8\\\x89\x18\xea\xc1\x9a\x90\x89\xc0\xfaZ*\xb4\xdc\xe3\xf9\x05(\xdc\xde\xec\x10\x8b#\xdd\xf3`{\x99')
-    ]
     MODULE_PATH = './modules/'
-    ROOMS = []
     LOG_DIR = './logs/'
-
 
 app = Flask(__name__)
 app.config.from_object('mercury.Config')
 app.config.from_envvar('MERCURY_CONFIG_PATH')
-
-USERS = dict((_id, User(_id, name, salt, _hash)) for _id, name, salt, _hash in app.config['USERS'])
-USER_NAMES = dict((u.name, u) for u in USERS.itervalues())
 
 login_manager = LoginManager()
 login_manager.login_view = 'login'
@@ -61,9 +51,24 @@ login_manager.login_message = u'Please log in to access this page.'
 red = redis.StrictRedis()
 
 
+def get_user(username):
+    details = red.hmget('user:%s' % username, ['salt', 'password', 'colour'])
+    if None in details:
+        return None
+    return User(username, *details)
+
+
+def get_rooms():
+    return red.smembers('rooms')
+
+
+def add_room(name):
+    red.sadd('rooms', name)
+
+
 @login_manager.user_loader
-def load_user(id):
-    return USERS.get(int(id))
+def load_user(username):
+    return get_user(username)
 
 login_manager.setup_app(app)
 
@@ -73,12 +78,12 @@ def login():
     if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
         username = request.form['username']
         password = request.form['password']
-        if username in USER_NAMES and USER_NAMES[username].correct_password(password):
-            if login_user(USER_NAMES[username], remember=True):
+        user = get_user(username)
+        if user is not None and user.correct_password(password):
+            if login_user(user, remember=True):
                 flash('Logged in!', 'success')
                 return redirect(url_for('index'))
-            else:
-                flash('Sorry, but you could not log in.', 'error')
+            flash('Sorry, but you could not log in.', 'error')
         else:
             flash('Invalid username or password', 'error')
     return render_template('login.html', page='login')
@@ -96,7 +101,13 @@ def logout():
 @login_required
 def index():
     current_user.modules = get_available_modules()
-    return render_template('index.html', user=current_user, page='index', rooms=app.config['ROOMS'])
+    return render_template('index.html', user=current_user, page='index', rooms=get_rooms())
+
+
+@app.route('/theme.css')
+@login_required
+def theme():
+    return Response(render_template('theme.css', color=current_user.colour), mimetype='text/css')
 
 
 @app.route('/api/modules/', methods=['GET', 'POST'])
@@ -126,19 +137,21 @@ def modules(_id=None):
 @app.route('/api/chat/<_id>/', methods=['GET', 'POST'])
 @login_required
 def chat(_id=None):
+    rooms = get_rooms()
     if _id is None:
         if request.method == 'GET':
-            return jsonify(rooms=app.config['ROOMS'])
+            return jsonify(rooms=rooms)
         name = request.form['name']
-        if name in app.config['ROOMS']:
+        if name in rooms:
             return jsonify(error='A room with that name already exists'), 400
-        app.config['ROOMS'].append(name)
+        add_room(name)
         return jsonify(room=name)
-    if _id not in app.config['ROOMS']:
+    _id = _id.replace('_', ' ')
+    if _id not in rooms:
         return jsonify(error='No room with that name exists'), 400
     if request.method == 'GET':
         return Response(chat_stream(_id), mimetype="text/event-stream")
-    user = current_user.name
+    user = current_user.id
     message = u'[%s]: %s' % (user, request.form['message'])
     red.publish(_id, message)
     with open(app.config['LOG_DIR'] + '/' + _id + '.log', 'a') as f:
@@ -173,7 +186,7 @@ def get_available_modules():
                             if not os.path.isdir(os.path.join(path_v, version)):
                                 continue
                             mid = '-'.join([name, module, version])
-                            if name == current_user.name:
+                            if name == current_user.id:
                                 try:
                                     modules['user'][module][version] = mid
                                 except KeyError:
@@ -195,7 +208,6 @@ def get_available_modules():
     return modules
 
 
-
 def id_in_modules(modules, _id):
     if isinstance(modules, basestring):
         return modules == _id
@@ -214,4 +226,4 @@ def get_module(path, name):
     return m
 
 if __name__ == '__main__':
-    app.run(threaded=True, host='0.0.0.0')
+    app.run(threaded=True)
