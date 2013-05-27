@@ -57,7 +57,7 @@ var MPANELS = {
                             e.setValue(data['module'][EDITORS.names[i]],-1);
                         }
                         var parts = data['module']['name'].split('-');
-                        MPANELS.save.set(parts[1], parts[2]);
+                        MPANELS.save.set(parts[0] + '-' + parts[1], parts[2]);
                         alertify.success("Loaded module!");
                         MPANELS.show("encrypt");
                     })
