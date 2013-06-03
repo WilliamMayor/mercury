@@ -8017,6 +8017,13 @@ form span.postfix {
   color: #e74c3c;
 }
 
+/* line 2, ../sass/_home.scss */
+.mpanel.home ul, .mpanel.home ol {
+  margin-left: 100px;
+  margin-top: 20px;
+  margin-right: 100px;
+}
+
 /* line 2, ../sass/_lobby.scss */
 .mpanel.lobby ul {
   margin-left: 100px;

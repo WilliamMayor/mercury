@@ -35,11 +35,9 @@ var MPANELS = {
     },
     console: {
         error: function(message) {
-            alertify.error("Check your console");
             $(".mpanel.console ul.console").append($("<li class='error'>" + message + "</li>")).scrollTop($(".mpanel.console ul.console")[0].scrollHeight);
         },
         success: function(message) {
-            alertify.success("Check your console");
             $(".mpanel.console ul.console").append($("<li class='success'>" + message + "</li>")).scrollTop($(".mpanel.console ul.console")[0].scrollHeight);
         },
         info: function(message) {
@@ -49,15 +47,17 @@ var MPANELS = {
     load: {
         init: function() {
             $(".mpanel.load form").submit(function() {
-                var module = $(".mpanel.load form select").val();
-                $.getJSON("/api/modules/" + module)
+                var option = $(".mpanel.load form select option").filter(":selected");
+                var user = option.data('user');
+                var name = option.data('name');
+                var version = option.data('version');
+                $.getJSON("/api/modules/" + user + "/" + name + "/" + version + "/")
                     .done(function(data) {
                         for (var i=0; i < EDITORS.names.length; i++) {
                             var e = EDITORS.editors[EDITORS.names[i]];
                             e.setValue(data['module'][EDITORS.names[i]],-1);
                         }
-                        var parts = data['module']['name'].split('-');
-                        MPANELS.save.set(parts[1], parts[2]);
+                        MPANELS.save.set(data['module']['name'], data['module']['version']);
                         alertify.success("Loaded module!");
                         MPANELS.show("encrypt");
                     })
@@ -71,37 +71,13 @@ var MPANELS = {
         load: function(modules) {
             var select = $(".mpanel.load select");
             select.children().remove();
-            var optgroup = null;
-            var n,m,v, val, option, parts;
-            for (m in modules['user']) {
-                optgroup = null;
-                for (v in modules['user'][m]) {
-                    val = modules['user'][m][v];
-                    option = $("<option value='" + val + "'>" + v + "</option>");
-                    if (optgroup === null) {
-                        parts = val.split("-");
-                        optgroup = $("<optgroup label='" + parts[0] + "-" + parts[1] + "'></optgroup>");
-
-                    }
-                    optgroup.append(option);
-                }
-                select.append(optgroup);
-            }
-            for (n in modules['public']) {
-                for (m in modules['public'][n]) {
-                    optgroup = null;
-                    for (v in modules['public'][n][m]) {
-                        val = modules['public'][n][m][v];
-                        option = $("<option value='" + val + "'>" + v + "</option>");
-                        if (optgroup === null) {
-                            parts = val.split("-");
-                            optgroup = $("<optgroup label='" + parts[0] + "-" + parts[1] + "'></optgroup>");
-
-                        }
-                        optgroup.append(option);
-                    }
-                    select.append(optgroup);
-                }
+            for (var m in modules) {
+                var option = $("<option></option>");
+                option.data('user', m['user']);
+                option.data('name', m['name']);
+                option.data('version', m['version']);
+                option.val([m['user'], m['name'], m['version']].join("-"));
+                select.append(option);
             }
         }
     },
@@ -120,6 +96,12 @@ var MPANELS = {
                             MPANELS.console.success('Encrypted into: ' + ciphertext);
                             $(".mpanel.encrypt input.output").val(ciphertext);
                             this.removeEventListener('message',arguments.callee,false);
+                        } else if ('progress' in event.data) {
+                            $(".mpanel.encrypt .meter").width(event.data['progress']);
+                        } else if ('success' in event.data) {
+                            alertify.success(event.data['success']);
+                        } else if ('error' in event.data) {
+                            alertify.error(event.data['error']);
                         }
                     }, false);
                     WORKER.worker.postMessage({execute: "encrypt('" + plaintext + "');", output: output});
@@ -145,6 +127,12 @@ var MPANELS = {
                             MPANELS.console.success('Decrypted into: ' + plaintext);
                             $(".mpanel.decrypt input.output").val(plaintext);
                             this.removeEventListener('message',arguments.callee,false);
+                        } else if ('progress' in event.data) {
+                            $(".mpanel.decrypt .meter").width(event.data['progress']);
+                        } else if ('success' in event.data) {
+                            alertify.success(event.data['success']);
+                        } else if ('error' in event.data) {
+                            alertify.error(event.data['error']);
                         }
                     }, false);
                     WORKER.worker.postMessage({execute: "decrypt('" + ciphertext + "');", output: output});
@@ -170,6 +158,12 @@ var MPANELS = {
                             MPANELS.console.success('Hacked into: ' + plaintext);
                             $(".mpanel.hack input.output").val(plaintext);
                             this.removeEventListener('message',arguments.callee,false);
+                        } else if ('progress' in event.data) {
+                            $(".mpanel.hack .meter").width(event.data['progress']);
+                        } else if ('success' in event.data) {
+                            alertify.success(event.data['success']);
+                        } else if ('error' in event.data) {
+                            alertify.error(event.data['error']);
                         }
                     }, false);
                     WORKER.worker.postMessage({execute: "hack('" + ciphertext + "');", output: output});

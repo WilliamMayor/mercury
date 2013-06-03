@@ -1,24 +1,19 @@
 import getpass
-import hashlib
-import os
 
-import redis
+from User import User
 
 if __name__ == '__main__':
-    red = redis.StrictRedis()
+    users = list(User.getall())
 
     username = raw_input('Username: ')
-    if red.sismember('users', username):
+    if username in [u.id for u in users]:
         print 'Username taken! Try again'
         exit(1)
 
     password = getpass.getpass('Password: ')
-    salt = os.urandom(16).encode('hex')
-    passwordhash = hashlib.sha256(password + salt).digest().encode('hex')
 
-    colour = raw_input('Color: ')
+    colour = raw_input('Colour: ')
     if colour == '':
         colour = '1abc9c'
 
-    red.hmset('user:%s' % username, dict(password=passwordhash, salt=salt, colour=colour))
-    red.sadd('users', username)
+    User.add(username, password, colour)

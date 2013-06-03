@@ -1,8 +1,10 @@
-import hashlib
-import os
 import fcntl
 
 import redis
+
+from Room import Room
+from User import User
+from Module import Module
 
 from flask import (
     Flask,
@@ -18,20 +20,7 @@ from flask.ext.login import (
     current_user,
     login_required,
     login_user,
-    logout_user,
-    UserMixin)
-
-
-class User(UserMixin):
-
-    def __init__(self, name, salt, _hash, colour):
-        self.id = name
-        self.salt = salt
-        self.hash = _hash
-        self.colour = colour
-
-    def correct_password(self, password):
-        return self.hash == hashlib.sha256(password + self.salt).digest().encode('hex')
+    logout_user)
 
 
 class Config:
@@ -43,46 +32,21 @@ class Config:
 app = Flask(__name__)
 app.config.from_object('mercury.Config')
 app.config.from_envvar('MERCURY_CONFIG_PATH')
+Module.PATH = app.config['MODULE_PATH']
+
+red = redis.StrictRedis()
 
 login_manager = LoginManager()
 login_manager.login_view = 'login'
 login_manager.login_message = u'Please log in to access this page.'
 
-red = redis.StrictRedis()
-
-
-def get_user(username):
-    details = red.hmget('user:%s' % username, ['salt', 'password', 'colour'])
-    if None in details:
-        return None
-    return User(username, *details)
-
-
-def get_users():
-    users = []
-    for user in red.smembers('users'):
-        values = red.hmget('user:%s' % user, ['salt', 'password', 'colour'])
-        users.append(User(user, *values))
-    return users
-
-
-def get_rooms():
-    rooms = red.smembers('rooms')
-    return dict((r, get_room(r)[0]) for r in rooms)
-
-
-def add_room(name, module):
-    red.sadd('rooms', name)
-    red.hmset('room:%s' % name, dict(module=module))
-
-
-def get_room(name):
-    return red.hmget('room:%s' % name, ['module'])
-
 
 @login_manager.user_loader
 def load_user(username):
-    return get_user(username)
+    try:
+        return User(username)
+    except:
+        return None
 
 login_manager.setup_app(app)
 
@@ -92,14 +56,15 @@ def login():
     if request.method == 'POST' and 'username' in request.form and 'password' in request.form:
         username = request.form['username']
         password = request.form['password']
-        user = get_user(username)
-        if user is not None and user.correct_password(password):
+        try:
+            user = User(username)
+            if not user.correct_password(password):
+                flash('Invalid username or password', 'error')
             if login_user(user, remember=True):
                 flash('Logged in!', 'success')
                 return redirect(url_for('index'))
-            flash('Sorry, but you could not log in.', 'error')
-        else:
-            flash('Invalid username or password', 'error')
+        except:
+            pass
     return render_template('login.html', page='login')
 
 
@@ -114,57 +79,79 @@ def logout():
 @app.route('/')
 @login_required
 def index():
-    current_user.modules = get_available_modules()
-    return render_template('index.html', user=current_user, page='index', rooms=get_rooms())
+    current_user.modules = list(Module.getall(current_user))
+    return render_template('index.html', user=current_user, page='index', rooms=list(Room.getall()))
 
 
 @app.route('/theme.css')
 @login_required
 def theme():
-    return Response(render_template('theme.css', color=current_user.colour, users=get_users()), mimetype='text/css')
+    return Response(render_template('theme.css', color=current_user.colour, users=User.getall()), mimetype='text/css')
 
 
-@app.route('/api/modules/', methods=['GET', 'POST'])
-@app.route('/api/modules/<_id>/', methods=['GET', 'POST'])
+@app.route('/api/modules/', methods=['GET'])
+@app.route('/api/modules/<user>/<name>/<version>/', methods=['GET', 'POST'])
 @login_required
-def modules(_id=None):
+def modules(user=None, name=None, version=None):
+    if None in [user, name]:
+        return jsonify(modules=Module.getall(current_user))
+    version = request.form.get('version', version)
+    m = Module(user, name, version)
     if request.method == 'GET':
-        modules = get_available_modules()
-        if _id is None:
-            return jsonify(modules=modules)
-        else:
-            if id_in_modules(modules, _id):
-                parts = _id.split('-')
-                path = os.path.join(app.config['MODULE_PATH'], parts[0], parts[1], parts[2])
-                return jsonify(module=get_module(path, _id))
+        if not (user == current_user.id or current_user.isadmin or (version is not None and version.endswith('p'))):
+            return jsonify(error='Not authorised'), 403
+        if not Module.exists(user, name, version):
             return jsonify(error='no module of that name'), 404
-    if '-' in request.form['name']:
-        return jsonify(error='cannot name a module with a hyphen'), 400
-    path = os.path.join(app.config['MODULE_PATH'], current_user.name, request.form['name'], request.form['version'])
-    if not os.path.exists(path):
-        os.makedirs(path)
-    for m in ['encrypt', 'decrypt', 'hack']:
-        with open(os.path.join(path, m + '.py'), 'w') as f:
-            f.write(request.form[m])
-    return jsonify(modules=get_available_modules())
+    else:
+        if user != current_user.id:
+            return jsonify(error='Not authorised'), 403
+        m.encrypt = request.form['encrypt']
+        m.decrypt = request.form['decrypt']
+        m.hack = request.form['hack']
+    return jsonify(module=dict(
+        user=user,
+        name=name,
+        version=version,
+        encrypt=m.encrypt,
+        decrypt=m.decrypt,
+        hack=m.hack))
+
+
+@app.route('/api/modules/', methods=['POST'])
+@login_required
+def modules_save():
+    user = current_user.id
+    name = request.form['name']
+    version = request.form['version']
+    m = Module(user, name, version)
+    m.encrypt = request.form['encrypt']
+    m.decrypt = request.form['decrypt']
+    m.hack = request.form['hack']
+    return jsonify(module=dict(
+        user=user,
+        name=name,
+        version=version,
+        encrypt=m.encrypt,
+        decrypt=m.decrypt,
+        hack=m.hack))
 
 
 @app.route('/api/chat/', methods=['GET', 'POST'])
-@app.route('/api/chat/<_id>/', methods=['GET', 'POST'])
+@app.route('/api/chat/<path:_id>/', methods=['GET', 'POST'])
 @login_required
 def chat(_id=None):
-    rooms = get_rooms()
     if _id is None:
         if request.method == 'GET':
-            return jsonify(rooms=rooms)
+            return jsonify(rooms=Room.getall())
         name = request.form['name']
-        module = request.form['module']
-        if name in rooms:
+        module = Module(request.form['module_user'],
+                        request.form['module_name'],
+                        request.form['module_version'])
+        if name in Room.getall():
             return jsonify(error='A room with that name already exists'), 400
-        add_room(name, module)
+        Room.add(name, module)
         return jsonify(room=dict(name=name, module=module))
-    _id = _id.replace('_', ' ')
-    if _id not in rooms:
+    if _id not in Room.getall():
         return jsonify(error='No room with that name exists'), 400
     if request.method == 'GET':
         return Response(chat_stream(_id), mimetype="text/event-stream")
@@ -178,16 +165,18 @@ def chat(_id=None):
     return jsonify(success='message posted')
 
 
-@app.route('/api/chat/<_id>/code/')
+@app.route('/api/chat/<path:_id>/code/')
 @login_required
 def chat_worker(_id):
-    details = get_room(_id)
-    if None in details:
+    r = Room.get(_id)
+    if r.module is None:
         return jsonify(error='no module of that name'), 404
-    module = details[0]
-    parts = module.split('-')
-    path = os.path.join(app.config['MODULE_PATH'], parts[0], parts[1], parts[2])
-    return jsonify(module=get_module(path, module))
+    return jsonify(module=dict(
+        user=r.module.user,
+        name=r.module.name,
+        version=r.module.version,
+        encrypt=r.module.encrypt,
+        decrypt=r.module.decrypt))
 
 
 def chat_stream(name):
@@ -196,63 +185,6 @@ def chat_stream(name):
     # TODO: handle client disconnection.
     for message in pubsub.listen():
         yield 'data: %s\n\n' % message['data']
-
-
-def get_available_modules():
-    '''
-    {user: {module: {version: id}, ...}, public: {name: {module: {version: id}, ...}}}
-    '''
-    modules = dict(public={}, user={})
-    try:
-        path_n = app.config['MODULE_PATH']
-        for name in os.listdir(path_n):
-            try:
-                path_m = os.path.join(path_n, name)
-                for module in os.listdir(path_m):
-                    try:
-                        path_v = os.path.join(path_m, module)
-                        for version in os.listdir(path_v):
-                            if not os.path.isdir(os.path.join(path_v, version)):
-                                continue
-                            mid = '-'.join([name, module, version])
-                            if name == current_user.id:
-                                try:
-                                    modules['user'][module][version] = mid
-                                except KeyError:
-                                    modules['user'][module] = {version: mid}
-                            elif version.endswith('p'):
-                                try:
-                                    modules['public'][name][module][version] = mid
-                                except KeyError:
-                                    try:
-                                        modules['public'][name][module] = {version: mid}
-                                    except KeyError:
-                                        modules['public'][name] = {module: {version: mid}}
-                    except:
-                        pass
-            except:
-                pass
-    except:
-        pass
-    return modules
-
-
-def id_in_modules(modules, _id):
-    if isinstance(modules, basestring):
-        return modules == _id
-    else:
-        is_in = False
-        for val in modules.values():
-            is_in |= id_in_modules(val, _id)
-        return is_in
-
-
-def get_module(path, name):
-    m = dict(name=name)
-    for p in ['encrypt', 'decrypt', 'hack']:
-        with open(os.path.join(path, p + '.py'), 'r') as f:
-            m[p] = f.read()
-    return m
 
 if __name__ == '__main__':
     app.run(threaded=True)

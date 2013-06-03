@@ -39,13 +39,7 @@
                 <section class="top-bar-section">
                     <ul class="left">
                         <li class="divider"></li>
-                        <li class="has-dropdown"><a class="nav intro" href="intro">Home</a>
-                            <ul class="dropdown">
-                                <li><a class="nav intro" href="intro">Intro</a></li>
-                                <li><a class="nav contact" href="contact">Contact</a></li>
-                                <li><a class="nav links" href="links">Links</a></li>
-                            </ul>
-                        </li>
+                        <li><a class="nav intro" href="intro">Home</a></li>
                         <li class="divider"></li>
                         <li class="has-dropdown"><a class="nav lobby" href="lobby">Chat</a>
                             <ul class="chat dropdown">
@@ -68,6 +62,7 @@
                     </ul>
                     <ul class="right">
                         {% if user %}
+                        <li><a href="#">Hi {{ user.id }}</a></li>
                         <li><a href="/logout/">logout</a></li>
                         {% else %}
                         <li><a href="/login/">login</a></li>

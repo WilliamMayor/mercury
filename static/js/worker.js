@@ -6064,6 +6064,9 @@ error = function(message) {
 success = function(message) {
     postMessage({success: message});
 }
+progress = function(message) {
+    postMessage({progress: message});   
+}
 var dictionary = [];
 onmessage = function(event) {
     if ("init" in event.data) {
