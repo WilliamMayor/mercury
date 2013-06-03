@@ -177,26 +177,35 @@ var MPANELS = {
     save: {
         init: function() {
             $(".mpanel.save form").submit(function() {
-                for (var i=0; i < EDITORS.names.length; i++) {
-                    var e = EDITORS.editors[EDITORS.names[i]];
-                    var src = e.getValue();
-                    $(".mpanel.save input[name=" + EDITORS.names[i] + "]").val(src);
-                }
-                $.post("/api/modules/", $(".mpanel.save form").serialize())
-                    .done(function(data) {
-                        MPANELS.load.load(data['modules']);
-                        alertify.success("Saved module!");
-                    })
-                    .fail(function(data) {
-                        console.log(data);
-                        alertify.error("Could not save module, sorry.");
-                    });
+                MPANELS.save.save();
                 return false;
             });
+            document.addEventListener("keydown", function(e) {
+                if (e.keyCode == 83 && (navigator.platform.match("Mac") ? e.metaKey : e.ctrlKey)) {
+                    e.preventDefault();
+                    MPANELS.save.save();
+              }
+            }, false);
         },
         set: function(name, version) {
             $(".mpanel.save input[name=name]").val(name);
             $(".mpanel.save input[name=version]").val(version);
+        },
+        save: function() {
+            for (var i=0; i < EDITORS.names.length; i++) {
+                var e = EDITORS.editors[EDITORS.names[i]];
+                var src = e.getValue();
+                $(".mpanel.save input[name=" + EDITORS.names[i] + "]").val(src);
+            }
+            $.post("/api/modules/", $(".mpanel.save form").serialize())
+                .done(function(data) {
+                    MPANELS.load.load(data['modules']);
+                    alertify.success("Saved module!");
+                })
+                .fail(function(data) {
+                    console.log(data);
+                    alertify.error("Could not save module, sorry.");
+                });
         }
     },
     lobby: {
