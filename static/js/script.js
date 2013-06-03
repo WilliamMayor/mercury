@@ -220,7 +220,12 @@ var MPANELS = {
     create: {
         init: function() {
             $(".mpanel.create form").submit(function() {
-                $.post("/api/chat/", $(".mpanel.create form").serialize())
+                var option = $(".mpanel.create form select option").filter(":selected");
+                var form = $(".mpanel.create form").serializeArray();
+                form.push({'name': 'module_user', 'value': option.data('user')});
+                form.push({'name': 'module_name', 'value': option.data('name')});
+                form.push({'name': 'module_version', 'value': option.data('version')});
+                $.post("/api/chat/", $.param(form))
                     .done(function(data) {
                         var room_name = data['room']['name'];
                         var safe_name = room_name.replace(' ', '_');

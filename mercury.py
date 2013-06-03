@@ -147,22 +147,25 @@ def chat(_id=None):
         module = Module(request.form['module_user'],
                         request.form['module_name'],
                         request.form['module_version'])
-        if name in Room.getall():
-            return jsonify(error='A room with that name already exists'), 400
-        Room.add(name, module)
-        return jsonify(room=dict(name=name, module=module))
-    if _id not in Room.getall():
+        try:
+            Room.get(name)
+        except:
+            Room.add(name, module)
+        return jsonify(room=dict(name=name))
+    try:
+        Room.get(_id)
+        if request.method == 'GET':
+            return Response(chat_stream(_id), mimetype="text/event-stream")
+        user = current_user.id
+        message = u'[%s]: %s' % (user, request.form['message'])
+        red.publish(_id, message)
+        with open(app.config['LOG_DIR'] + '/' + _id + '.log', 'a') as f:
+            fcntl.flock(f, fcntl.LOCK_EX)
+            f.write(message + '\n')
+            fcntl.flock(f, fcntl.LOCK_UN)
+        return jsonify(success='message posted')
+    except:
         return jsonify(error='No room with that name exists'), 400
-    if request.method == 'GET':
-        return Response(chat_stream(_id), mimetype="text/event-stream")
-    user = current_user.id
-    message = u'[%s]: %s' % (user, request.form['message'])
-    red.publish(_id, message)
-    with open(app.config['LOG_DIR'] + '/' + _id + '.log', 'a') as f:
-        fcntl.flock(f, fcntl.LOCK_EX)
-        f.write(message + '\n')
-        fcntl.flock(f, fcntl.LOCK_UN)
-    return jsonify(success='message posted')
 
 
 @app.route('/api/chat/<path:_id>/code/')

@@ -45,7 +45,7 @@
         Choose a room:
         <ul class="rooms">
         {% for room in rooms %}
-            <li><a class="room" href="{{ room }}">{{ room }}</a></li>
+            <li><a class="room" href="{{ room.name }}">{{ room.name }}</a></li>
         {% endfor %}
         </ul>
     </div>
