@@ -108,13 +108,15 @@ def modules(user=None, name=None, version=None):
         m.encrypt = request.form['encrypt']
         m.decrypt = request.form['decrypt']
         m.hack = request.form['hack']
+        m.comms = request.form['comms']
     return jsonify(module=dict(
         user=user,
         name=name,
         version=version,
         encrypt=m.encrypt,
         decrypt=m.decrypt,
-        hack=m.hack))
+        hack=m.hack,
+        comms=m.comms))
 
 
 @app.route('/api/modules/', methods=['POST'])
@@ -127,13 +129,15 @@ def modules_save():
     m.encrypt = request.form['encrypt']
     m.decrypt = request.form['decrypt']
     m.hack = request.form['hack']
+    m.comms = request.form['comms']
     return jsonify(module=dict(
         user=user,
         name=name,
         version=version,
         encrypt=m.encrypt,
         decrypt=m.decrypt,
-        hack=m.hack))
+        hack=m.hack,
+        comms=m.comms))
 
 
 @app.route('/api/chat/', methods=['GET', 'POST'])
@@ -179,7 +183,8 @@ def chat_worker(_id):
         name=r.module.name,
         version=r.module.version,
         encrypt=r.module.encrypt,
-        decrypt=r.module.decrypt))
+        decrypt=r.module.decrypt,
+        comms=r.module.comms))
 
 
 def chat_stream(name):

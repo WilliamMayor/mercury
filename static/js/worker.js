@@ -6080,8 +6080,10 @@ onmessage = function(event) {
         try {
             var results = eval(event.data["execute"]);
             var output = event.data["output"] || "info";
+            var user = event.data["user"] || "unknown";
             var message = {};
             message[output] = results;
+            message['user'] = user;
             postMessage(message);
         } catch (err) {
             error("Could not execute: " + err);

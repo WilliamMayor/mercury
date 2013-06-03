@@ -62,6 +62,14 @@ class Module(object):
     def hack(self, value):
         self._save_code('hack.py', value)
 
+    @property
+    def comms(self):
+        return self._load_code('comms.py')
+
+    @comms.setter
+    def comms(self, value):
+        self._save_code('comms.py', value)
+
     def _load_code(self, filename):
         if filename not in self._code:
             with open(os.path.join(self.path, filename), 'r') as f:

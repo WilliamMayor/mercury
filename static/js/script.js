@@ -263,12 +263,25 @@ var MPANELS = {
 
             var worker = new Worker("/static/js/worker.js");
             worker.postMessage({init: true});
+            var output = ("0000" + (Math.random()*Math.pow(36,4) << 0).toString(36)).substr(-4);
+            worker.addEventListener('message', function(event) {
+                if (output in event.data) {
+                    var user_span = $("<span class='user " + event.data['user'] + "'>" + event.data['user'] + "</span>");
+                    var message_span = $("<span></span>");
+                    message_span.text(event.data[output]);
+                    var li = $("<li></li>");
+                    li.append("[").append(user_span).append("]: ").append(message_span);
+                    ul.append(li);
+                }
+            });
             var source = new EventSource("/api/chat/" + safe_name + "/");
             $.getJSON("/api/chat/" + safe_name + "/code/")
                 .done(function(data) {
                     worker.postMessage({src: data['module']['encrypt']});
                     worker.postMessage({src: data['module']['decrypt']});
+                    worker.postMessage({src: data['module']['comms']});
                     source.onmessage = function(e) {
+                        console.log(e.data);
                         var parts = e.data.split("]: ", 2);
                         if (parts.length === 1) {
                             var li = $("<li></li>");
@@ -277,19 +290,7 @@ var MPANELS = {
                         } else {
                             var user = parts[0].slice(1);
                             var ciphertext = parts[1];
-                            var output = ("0000" + (Math.random()*Math.pow(36,4) << 0).toString(36)).substr(-4);
-                            worker.addEventListener('message', function(event) {
-                                if (output in event.data) {
-                                    var user_span = $("<span class='user " + user + "'>" + user + "</span>");
-                                    var message_span = $("<span></span>");
-                                    message_span.text(event.data[output]);
-                                    var li = $("<li></li>");
-                                    li.append("[").append(user_span).append("]: ").append(message_span);
-                                    ul.append(li);
-                                    this.removeEventListener('message',arguments.callee,false);
-                                }
-                            });
-                            worker.postMessage({execute: "decrypt('" + ciphertext.replace("'", "\'") + "');", output: output});
+                            worker.postMessage({execute: "receive('" + ciphertext.replace("'", "\'") + "');", output: output, user: user});
                         }
                     };
                 })
@@ -313,7 +314,7 @@ var MPANELS = {
                         this.removeEventListener('message',arguments.callee,false);
                     }
                 });
-                worker.postMessage({execute: "encrypt('" + plaintext.replace("'", "\\'") + "');", output: output});
+                worker.postMessage({execute: "send('" + plaintext.replace("'", "\\'") + "');", output: output});
                 return false;
             });
         }
@@ -350,7 +351,7 @@ var WORKER = {
     }
 };
 var EDITORS = {
-    names: ["encrypt", "decrypt", "hack"],
+    names: ["encrypt", "decrypt", "hack", "comms"],
     editors: {},
     init: function() {
         for (var i=0; i<EDITORS.names.length; i++) {
