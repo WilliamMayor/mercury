@@ -6054,6 +6054,37 @@ _class_string=_c.replace(' '+name+' ', '')
 }
 this.__setattr('class', _class_string)
 }
+var globalEval = (function() {
+
+  var isIndirectEvalGlobal = (function(original, Object) {
+    try {
+      // Does `Object` resolve to a local variable, or to a global, built-in `Object`,
+      // reference to which we passed as a first argument?
+      return (1,eval)('Object') === original;
+    }
+    catch(err) {
+      // if indirect eval errors out (as allowed per ES3), then just bail out with `false`
+      return false;
+    }
+  })(Object, 123);
+
+  if (isIndirectEvalGlobal) {
+
+    // if indirect eval executes code globally, use it
+    return function(expression) {
+      return (1,eval)(expression);
+    };
+  }
+  else if (typeof window.execScript !== 'undefined') {
+
+    // if `window.execScript exists`, use it
+    return function(expression) {
+      return window.execScript(expression);
+    };
+  }
+
+  // otherwise, globalEval is `undefined` since nothing is returned
+})();
 
 info = function(message) {
     postMessage({info: message});
@@ -6080,7 +6111,9 @@ mercury_display = function(message) {
     o['user'] = user;
     postMessage(o);
 }
-
+random = function(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+}
 var dictionary = [];
 onmessage = function(event) {
     var output = 'info';
@@ -6099,7 +6132,7 @@ onmessage = function(event) {
     }
     if ("execute" in event.data) {
         try {
-            var results = eval(event.data["execute"]);
+            var results = globalEval(event.data["execute"]);
             var message = {};
             message[output] = results;
             message['user'] = user;
@@ -6112,6 +6145,6 @@ onmessage = function(event) {
         var src = event.data["src"];
         var root = __BRYTHON__.py2js(src,'__main__');
         var js = root.to_js();
-        eval(js);
+        globalEval(js);
     }
 };

@@ -102,6 +102,7 @@ var MPANELS = {
                             alertify.success(event.data['success']);
                         } else if ('error' in event.data) {
                             alertify.error(event.data['error']);
+                            this.removeEventListener('message',arguments.callee,false);
                         }
                     }, false);
                     WORKER.worker.postMessage({execute: "encrypt('" + plaintext.replace(/'/g, "\\'") + "');", output: output});
@@ -133,6 +134,7 @@ var MPANELS = {
                             alertify.success(event.data['success']);
                         } else if ('error' in event.data) {
                             alertify.error(event.data['error']);
+                            this.removeEventListener('message',arguments.callee,false);
                         }
                     }, false);
                     WORKER.worker.postMessage({execute: "decrypt('" + ciphertext.replace(/'/g, "\\'") + "');", output: output});
@@ -164,6 +166,7 @@ var MPANELS = {
                             alertify.success(event.data['success']);
                         } else if ('error' in event.data) {
                             alertify.error(event.data['error']);
+                            this.removeEventListener('message',arguments.callee,false);
                         }
                     }, false);
                     WORKER.worker.postMessage({execute: "hack('" + ciphertext.replace(/'/g, "\\'") + "');", output: output});
@@ -298,6 +301,7 @@ var MPANELS = {
                     worker.postMessage({src: data['module']['encrypt']});
                     worker.postMessage({src: data['module']['decrypt']});
                     worker.postMessage({src: data['module']['comms']});
+                    worker.postMessage({execute: 'init()'});
                     var source = new EventSource("/api/chat/" + safe_name + "/");
                     source.onmessage = function(e) {
                         console.log(e.data);
