@@ -7,8 +7,7 @@ punctuation = """!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""
 printable = digits + ascii_letters + punctuation + whitespace
 
 
-def encrypt(plaintext):
-    global key
+def encrypt(plaintext, key):
     progress('0%')
     info('Performing Caesar cipher shift')
     info('Using shift of %d' % key)

@@ -295,6 +295,12 @@ var MPANELS = {
                             alertify.error("Error sending message");
                         });
                 }
+                if ('success' in event.data && event.data['success'] !== undefined) {
+                    alertify.success(event.data['success']);
+                }
+                if ('error' in event.data && event.data['error'] !== undefined) {
+                    alertify.error(event.data['error']);
+                }
             });
             $.getJSON("/api/chat/" + safe_name + "/code/")
                 .done(function(data) {
