@@ -301,6 +301,12 @@ var MPANELS = {
                 if ('error' in event.data && event.data['error'] !== undefined) {
                     alertify.error(event.data['error']);
                 }
+                if ('prompt' in event.data) {
+                    var o = {};
+                    o[event.data['output']] = prompt(event.data['prompt']);
+                    console.log(o);
+                    worker.postMessage(o);
+                }
             });
             $.getJSON("/api/chat/" + safe_name + "/code/")
                 .done(function(data) {

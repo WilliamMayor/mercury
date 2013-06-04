@@ -6114,6 +6114,19 @@ mercury_display = function(message) {
 random = function(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
+prompt = function(message, callback) {
+    var output = ("0000" + (Math.random()*Math.pow(36,4) << 0).toString(36)).substr(-4);
+    var o = {};
+    o['prompt'] = message;
+    o['output'] = output;
+    postMessage(o);
+    self.addEventListener('message', function(event) {
+        if (output in event.data) {
+            callback(event.data[output]);
+            this.removeEventListener('message',arguments.callee,false);
+        }
+    }, false);
+}
 var dictionary = [];
 onmessage = function(event) {
     var output = 'info';
