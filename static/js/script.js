@@ -104,7 +104,7 @@ var MPANELS = {
                             alertify.error(event.data['error']);
                         }
                     }, false);
-                    WORKER.worker.postMessage({execute: "encrypt('" + plaintext + "');", output: output});
+                    WORKER.worker.postMessage({execute: "encrypt('" + plaintext.replace(/'/g, "\\'") + "');", output: output});
                 } catch (err) {
                     MPANELS.console.error('There was a problem: ' + err);
                 }
@@ -135,7 +135,7 @@ var MPANELS = {
                             alertify.error(event.data['error']);
                         }
                     }, false);
-                    WORKER.worker.postMessage({execute: "decrypt('" + ciphertext + "');", output: output});
+                    WORKER.worker.postMessage({execute: "decrypt('" + ciphertext.replace(/'/g, "\\'") + "');", output: output});
                 } catch (err) {
                     MPANELS.console.error('There was a problem: ' + err);
                 }
@@ -166,7 +166,7 @@ var MPANELS = {
                             alertify.error(event.data['error']);
                         }
                     }, false);
-                    WORKER.worker.postMessage({execute: "hack('" + ciphertext + "');", output: output});
+                    WORKER.worker.postMessage({execute: "hack('" + ciphertext.replace(/'/g, "\\'") + "');", output: output});
                 } catch (err) {
                     MPANELS.console.error('There was a problem: ' + err);
                 }
@@ -272,34 +272,40 @@ var MPANELS = {
 
             var worker = new Worker("/static/js/worker.js");
             worker.postMessage({init: true});
-            var output = ("0000" + (Math.random()*Math.pow(36,4) << 0).toString(36)).substr(-4);
             worker.addEventListener('message', function(event) {
-                if (output in event.data) {
+                console.log(event);
+                if ('display' in event.data) {
                     var user_span = $("<span class='user " + event.data['user'] + "'>" + event.data['user'] + "</span>");
                     var message_span = $("<span></span>");
-                    message_span.text(event.data[output]);
+                    message_span.text(event.data['display']);
                     var li = $("<li></li>");
                     li.append("[").append(user_span).append("]: ").append(message_span);
                     ul.append(li);
                 }
+                if ('send' in event.data) {
+                    $.post("/api/chat/" + safe_name + "/", {'message': event.data['send']})
+                        .done(function(data) {
+                            form[0].reset();
+                        })
+                        .fail(function(data) {
+                            console.log(data);
+                            alertify.error("Error sending message");
+                        });
+                }
             });
-            var source = new EventSource("/api/chat/" + safe_name + "/");
             $.getJSON("/api/chat/" + safe_name + "/code/")
                 .done(function(data) {
                     worker.postMessage({src: data['module']['encrypt']});
                     worker.postMessage({src: data['module']['decrypt']});
                     worker.postMessage({src: data['module']['comms']});
+                    var source = new EventSource("/api/chat/" + safe_name + "/");
                     source.onmessage = function(e) {
                         console.log(e.data);
                         var parts = e.data.split("]: ", 2);
-                        if (parts.length === 1) {
-                            var li = $("<li></li>");
-                            li.text(e.data);
-                            ul.append(li);
-                        } else {
+                        if (parts.length === 2) {
                             var user = parts[0].slice(1);
-                            var ciphertext = parts[1];
-                            worker.postMessage({execute: "receive('" + ciphertext.replace("'", "\'") + "');", output: output, user: user});
+                            var message = parts[1];
+                            worker.postMessage({execute: "receive('" + message.replace(/'/g, "\\'") + "');", user: user});
                         }
                     };
                 })
@@ -309,21 +315,7 @@ var MPANELS = {
                 });
             form.submit(function() {
                 var plaintext = $(this).find("input[name=message]").val();
-                var output = ("0000" + (Math.random()*Math.pow(36,4) << 0).toString(36)).substr(-4);
-                worker.addEventListener('message', function(event) {
-                    if (output in event.data) {
-                        $.post("/api/chat/" + safe_name + "/", {'message': event.data[output]})
-                            .done(function(data) {
-                                form[0].reset();
-                            })
-                            .fail(function(data) {
-                                console.log(data);
-                                alertify.error("Error sending message");
-                            });
-                        this.removeEventListener('message',arguments.callee,false);
-                    }
-                });
-                worker.postMessage({execute: "send('" + plaintext.replace("'", "\\'") + "');", output: output});
+                worker.postMessage({execute: "send('" + plaintext.replace(/'/g, "\\'") + "');"});
                 return false;
             });
         }

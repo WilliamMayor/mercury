@@ -6067,8 +6067,29 @@ success = function(message) {
 progress = function(message) {
     postMessage({progress: message});   
 }
+var user = 'unknown';
+mercury_server_send = function(message) {
+    var o = {};
+    o['send'] = message;
+    o['user'] = user;
+    postMessage(o);
+}
+mercury_display = function(message) {
+    var o = {};
+    o['display'] = message;
+    o['user'] = user;
+    postMessage(o);
+}
+
 var dictionary = [];
 onmessage = function(event) {
+    var output = 'info';
+    if ('output' in event.data) {
+        output = event.data["output"];
+    }
+    if ('user' in event.data) {
+        user = event.data["user"];
+    }
     if ("init" in event.data) {
         brython(1);
         postMessage({info: "initialised worker"});
@@ -6079,8 +6100,6 @@ onmessage = function(event) {
     if ("execute" in event.data) {
         try {
             var results = eval(event.data["execute"]);
-            var output = event.data["output"] || "info";
-            var user = event.data["user"] || "unknown";
             var message = {};
             message[output] = results;
             message['user'] = user;
