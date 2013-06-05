@@ -8,8 +8,6 @@ from flask.ext.login import UserMixin
 
 class User(UserMixin):
 
-    REDIS = redis.StrictRedis()
-
     @staticmethod
     def getall():
         for user in User.REDIS.smembers('users'):

@@ -5,8 +5,6 @@ from Module import Module
 
 class Room:
 
-    REDIS = redis.StrictRedis()
-
     @staticmethod
     def getall():
         for name in Room.REDIS.smembers('rooms'):

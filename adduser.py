@@ -1,8 +1,10 @@
+import redis
 import getpass
 
 from User import User
 
 if __name__ == '__main__':
+    User.REDIS = redis.StrictRedis()
     users = list(User.getall())
 
     username = raw_input('Username: ')

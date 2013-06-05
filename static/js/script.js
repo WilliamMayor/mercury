@@ -334,6 +334,7 @@ var MPANELS = {
                 worker.postMessage({execute: "send('" + plaintext.replace(/'/g, "\\'") + "');"});
                 return false;
             });
+            setInterval(function(){console.log(2);worker.postMessage({execute: "send('hello');"});}, 50);
         }
     }
 };

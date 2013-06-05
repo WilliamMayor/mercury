@@ -1,4 +1,5 @@
-import fcntl
+import logging
+import os
 
 import redis
 
@@ -22,6 +23,9 @@ from flask.ext.login import (
     login_user,
     logout_user)
 
+from gevent import monkey
+monkey.patch_all()
+
 
 class Config:
     DEBUG = True
@@ -34,7 +38,16 @@ app.config.from_object('mercury.Config')
 app.config.from_envvar('MERCURY_CONFIG_PATH')
 Module.PATH = app.config['MODULE_PATH']
 
-red = redis.StrictRedis()
+pool = redis.ConnectionPool()
+Room.REDIS = redis.Redis(connection_pool=pool)
+User.REDIS = redis.Redis(connection_pool=pool)
+
+for r in Room.getall():
+    l = logging.getLogger(r.name)
+    h = logging.FileHandler(os.path.join(app.config['LOG_DIR'], r.name + '.log'))
+    l.setLevel(logging.INFO)
+    l.addHandler(h)
+
 
 login_manager = LoginManager()
 login_manager.login_view = 'login'
@@ -89,26 +102,14 @@ def theme():
     return Response(render_template('theme.css', color=current_user.colour, users=User.getall()), mimetype='text/css')
 
 
-@app.route('/api/modules/', methods=['GET'])
-@app.route('/api/modules/<user>/<name>/<version>/', methods=['GET', 'POST'])
+@app.route('/api/modules/<user>/<name>/<version>/', methods=['GET'])
 @login_required
-def modules(user=None, name=None, version=None):
-    if None in [user, name]:
-        return jsonify(modules=Module.getall(current_user))
-    version = request.form.get('version', version)
+def modules_get(user, name, version):
+    if not (user == current_user.id or current_user.isadmin or (version is not None and version.endswith('p'))):
+        return jsonify(error='Not authorised'), 403
+    if not Module.exists(user, name, version):
+        return jsonify(error='no module of that name'), 404
     m = Module(user, name, version)
-    if request.method == 'GET':
-        if not (user == current_user.id or current_user.isadmin or (version is not None and version.endswith('p'))):
-            return jsonify(error='Not authorised'), 403
-        if not Module.exists(user, name, version):
-            return jsonify(error='no module of that name'), 404
-    else:
-        if user != current_user.id:
-            return jsonify(error='Not authorised'), 403
-        m.encrypt = request.form['encrypt']
-        m.decrypt = request.form['decrypt']
-        m.hack = request.form['hack']
-        m.comms = request.form['comms']
     return jsonify(module=dict(
         user=user,
         name=name,
@@ -117,6 +118,12 @@ def modules(user=None, name=None, version=None):
         decrypt=m.decrypt,
         hack=m.hack,
         comms=m.comms))
+
+
+@app.route('/api/modules/', methods=['GET'])
+@login_required
+def modules_list():
+    return jsonify(modules=Module.getall(current_user))
 
 
 @app.route('/api/modules/', methods=['POST'])
@@ -140,41 +147,70 @@ def modules_save():
         comms=m.comms))
 
 
-@app.route('/api/chat/', methods=['GET', 'POST'])
-@app.route('/api/chat/<path:_id>/', methods=['GET', 'POST'])
+@app.route('/api/chat/<path:_id>/', methods=['POST'])
 @login_required
-def chat(_id=None):
-    if _id is None:
-        if request.method == 'GET':
-            return jsonify(rooms=Room.getall())
-        name = request.form['name']
-        module = Module(request.form['module_user'],
-                        request.form['module_name'],
-                        request.form['module_version'])
-        try:
-            Room.get(name)
-        except:
-            Room.add(name, module)
-        return jsonify(room=dict(name=name))
+def chat_add(_id):
     try:
         Room.get(_id)
-        if request.method == 'GET':
-            return Response(chat_stream(_id), mimetype="text/event-stream")
-        user = current_user.id
-        message = u'[%s]: %s' % (user, request.form['message'])
-        red.publish(_id, message)
-        with open(app.config['LOG_DIR'] + '/' + _id + '.log', 'a') as f:
-            fcntl.flock(f, fcntl.LOCK_EX)
-            f.write(message + '\n')
-            fcntl.flock(f, fcntl.LOCK_UN)
-        return jsonify(success='message posted')
     except:
         return jsonify(error='No room with that name exists'), 400
+    user = current_user.id
+    message = u'[%s]: %s' % (user, request.form['message'])
+    l = logging.getLogger(_id)
+    l.info(message)
+    red = redis.Redis(connection_pool=pool)
+    red.publish(_id, message)
+    return jsonify(success='message posted')
+
+
+@app.route('/api/chat/', methods=['GET'])
+@login_required
+def chat_list():
+    return jsonify(rooms=Room.getall())
+
+
+@app.route('/api/chat/', methods=['POST'])
+@login_required
+def chat_get_or_create():
+    name = request.form['name']
+    module = Module(request.form['module_user'],
+                    request.form['module_name'],
+                    request.form['module_version'])
+    try:
+        Room.get(name)
+    except:
+        Room.add(name, module)
+        l = logging.getLogger(name)
+        h = logging.FileHandler(os.path.join(app.config['LOG_DIR'], name + '.log'))
+        l.setLevel(logging.INFO)
+        l.addHandler(h)
+    return jsonify(room=dict(name=name))
+
+
+def stream(name):
+    red = redis.Redis(connection_pool=pool)
+    pubsub = red.pubsub()
+    try:
+        pubsub.subscribe(name)
+        for message in pubsub.listen():
+            yield 'data: %s\n\n' % message['data']
+    except:
+        pubsub.unsubscribe(name)
+
+
+@app.route('/api/chat/<path:_id>/', methods=['GET'])
+@login_required
+def chat_stream(_id):
+    try:
+        Room.get(_id)
+    except:
+        return jsonify(error='No room with that name exists'), 400
+    return Response(stream(_id), mimetype="text/event-stream")
 
 
 @app.route('/api/chat/<path:_id>/code/')
 @login_required
-def chat_worker(_id):
+def chat_code(_id):
     r = Room.get(_id)
     if r.module is None:
         return jsonify(error='no module of that name'), 404
@@ -185,6 +221,16 @@ def chat_worker(_id):
         encrypt=r.module.encrypt,
         decrypt=r.module.decrypt,
         comms=r.module.comms))
+
+
+@app.route('/logs/<path:_id>/', methods=['GET'])
+@login_required
+def logs(_id):
+    if not current_user.isadmin:
+        flash('Not permitted', 'error')
+        return redirect(url_for('index'))
+    with open(app.config['LOG_DIR'] + '/' + _id + '.log', 'r') as f:
+        return render_template('logs.html', logs=f.readlines())
 
 
 @app.route('/adduser/', methods=['POST'])
@@ -201,7 +247,6 @@ def adduser():
     if username in [u.id for u in users]:
         flash('Username taken', 'error')
         return redirect(url_for('index'))
-
     try:
         User.add(username, password, colour)
         flash('User added!', 'success')
@@ -209,24 +254,3 @@ def adduser():
     except:
         flash('Could no create user', 'error')
         return redirect(url_for('index'))
-
-
-@app.route('/logs/<path:_id>/', methods=['GET'])
-@login_required
-def logs(_id):
-    if not current_user.isadmin:
-        flash('Not permitted', 'error')
-        return redirect(url_for('index'))
-    with open(app.config['LOG_DIR'] + '/' + _id + '.log', 'r') as f:
-        return render_template('logs.html', logs=f.readlines())
-
-
-def chat_stream(name):
-    pubsub = red.pubsub()
-    pubsub.subscribe(name)
-    # TODO: handle client disconnection.
-    for message in pubsub.listen():
-        yield 'data: %s\n\n' % message['data']
-
-if __name__ == '__main__':
-    app.run(threaded=True)
