@@ -3,11 +3,11 @@ ascii_lowercase = 'abcdefghijklmnopqrstuvwxyz'
 ascii_uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 ascii_letters = ascii_lowercase + ascii_uppercase
 digits = '0123456789'
-punctuation = """!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""
+punctuation = "!\"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"
 printable = digits + ascii_letters + punctuation + whitespace
 
 
-def decrypt(ciphertext, key):
+def decrypt(ciphertext, key=10):
     progress('0%')
     info('Performing reverse Caesar cipher shift')
     info('Using shift of %d' % key)

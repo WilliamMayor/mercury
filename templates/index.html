@@ -202,5 +202,32 @@
         </form>
     </div>
 </div>
+{% if user and user.isadmin %}
+<div class="mpanel code adduser">
+    <div class="row">
+        <h1>Add User</h1>
+    </div>
+    <div class="large-5 small-6 small-centered large-centered columns">
+        <form action="/adduser/" method="POST">
+            <input type="text" name="username" placeholder="Username" />
+            <input type="password" name="password" placeholder="Password" />
+            <input type="text" name="colour" placeholder="Colour" />
+            <input type="submit" value="Add" class="button" />
+        </form>
+    </div>
+</div>
+<div class="mpanel chat logs">
+    <div class="row">
+        <h1>Logs</h1>
+    </div>
+    <div class="row">
+        <ul>
+        {% for room in rooms %}
+            <li><a class="room" href="/logs/{{ room.name }}/">{{ room.name }}</a></li>
+        {% endfor %}
+        </ul>
+    </div>
+</div>
+{% endif %}
 {% endblock %}
 

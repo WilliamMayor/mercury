@@ -187,6 +187,40 @@ def chat_worker(_id):
         comms=r.module.comms))
 
 
+@app.route('/adduser/', methods=['POST'])
+@login_required
+def adduser():
+    if not current_user.isadmin:
+        flash('Not permitted', 'error')
+        return redirect(url_for('index'))
+    username = request.form['username']
+    password = request.form['password']
+    colour = request.form['colour']
+
+    users = list(User.getall())
+    if username in [u.id for u in users]:
+        flash('Username taken', 'error')
+        return redirect(url_for('index'))
+
+    try:
+        User.add(username, password, colour)
+        flash('User added!', 'success')
+        return redirect(url_for('index'))
+    except:
+        flash('Could no create user', 'error')
+        return redirect(url_for('index'))
+
+
+@app.route('/logs/<path:_id>/', methods=['GET'])
+@login_required
+def logs(_id):
+    if not current_user.isadmin:
+        flash('Not permitted', 'error')
+        return redirect(url_for('index'))
+    with open(app.config['LOG_DIR'] + '/' + _id + '.log', 'r') as f:
+        return render_template('logs.html', logs=f.readlines())
+
+
 def chat_stream(name):
     pubsub = red.pubsub()
     pubsub.subscribe(name)

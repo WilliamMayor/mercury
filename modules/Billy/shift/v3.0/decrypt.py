@@ -7,7 +7,7 @@ punctuation = """!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""
 printable = digits + ascii_letters + punctuation + whitespace
 
 
-def decrypt(ciphertext, key):
+def decrypt(ciphertext, key=20):
     progress('0%')
     info('Performing reverse Caesar cipher shift')
     info('Using shift of %d' % key)

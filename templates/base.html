@@ -60,6 +60,15 @@
                             </ul>
                         </li>
                         <li class="divider"></li>
+                        {% if user and user.isadmin %}
+                        <li class="has-dropdown"><a class="nav load" href="admin">Admin</a>
+                            <ul class="dropdown">
+                                <li><a class="nav adduser" href="adduser">Add User</a></li>
+                                <li><a class="nav logs" href="logs">Logs</a></li>
+                            </ul>
+                        </li>
+                        <li class="divider"></li>
+                        {% endif %}
                     </ul>
                     <ul class="right">
                         {% if user %}

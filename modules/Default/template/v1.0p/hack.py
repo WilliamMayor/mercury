@@ -1,3 +1,3 @@
 def hack(ciphertext):
-    """Tries to crack the encryption securing the ciphertext and returns the plaintext"""
+    """Crack the encryption securing the ciphertext and return the plaintext"""
     return ciphertext

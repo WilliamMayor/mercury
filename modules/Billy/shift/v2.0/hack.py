@@ -3,7 +3,7 @@ ascii_lowercase = 'abcdefghijklmnopqrstuvwxyz'
 ascii_uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
 ascii_letters = ascii_lowercase + ascii_uppercase
 digits = '0123456789'
-punctuation = """!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""
+punctuation = "!\"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"
 printable = digits + ascii_letters + punctuation + whitespace
 
 
